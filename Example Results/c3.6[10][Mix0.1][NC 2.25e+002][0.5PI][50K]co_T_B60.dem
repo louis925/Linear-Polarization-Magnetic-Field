@@ -1,0 +1,24 @@
+set logscale x
+set title "Specific Intensity I(K) (T = 50K, C/A = 0.106206)"
+plot 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 1:4 title "1->0" with lines,\
+ 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 6:9 title "2->1" with lines,\
+ 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 11:14 title "3->2" with lines,\
+ 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 16:19 title "4->3" with lines,\
+ 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 21:24 title "5->4" with lines,\
+ 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 26:29 title "6->5" with lines,\
+ 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 31:34 title "7->6" with lines,\
+ 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 36:39 title "8->7" with lines,\
+ 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 41:44 title "9->8" with lines
+pause -1
+set title "Fractional Linear Polarization P(%) (T = 50K, C/A = 0.106206)"
+plot 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 1:2 title "P[0]" with lines,\
+ 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 6:7 title "P[1]" with lines,\
+ 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 11:12 title "P[2]" with lines,\
+ 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 16:17 title "P[3]" with lines,\
+ 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 21:22 title "P[4]" with lines,\
+ 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 26:27 title "P[5]" with lines,\
+ 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 31:32 title "P[6]" with lines,\
+ 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 36:37 title "P[7]" with lines,\
+ 'c3.6[10][Mix0.1][NC 2.25e+002][0.5PI][50K]co_T_B60.dat' using 41:42 title "P[8]" with lines
+pause -1
+reset
