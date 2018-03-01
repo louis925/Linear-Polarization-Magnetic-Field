@@ -9,8 +9,8 @@ extern double Br_n[];         //normalized Cosmic Blackbody Radiation intensity 
 extern double energy_level[]; //Energy from ground state(J=0) for each level(J)
 extern double a_matrix_i[];   //initial a_matrix[], use 1D array to simulate 2D matrix
 extern double a_matrix[];     //use 1D array to simulate 2D matrix
-extern unsigned int loop_count;        //count of loops
-extern unsigned int interval_count;    //count for integral intervals number
+extern unsigned long long int loop_count;        //count of loops
+extern unsigned long long int interval_count;    //count for integral intervals number
 extern double T;              //temperature of cloud
 extern gsl_integration_workspace *w;
 #define _GLOBAL_VALUE_H_

@@ -1,12 +1,11 @@
 /*
-2009 Summer Project of Astrophysics
+2009 NTHU Astrophysics Summer Project
 
-The main purpose of this code is to reproduce the result of Deguchi and Watson (1984) paper.
-(also Cortes (2005))
+Made by Louis Yang (Kavli IPMU)
+Last update 2018.02.28 by Louis Yang
 
-Made by Louis
-NTHU
-2012.11.20
+The main purpose of this code is to reproduce the result of Deguchi and Watson (1984) paper and Cortes (2005).
+Ref: Cortes (2005) https://arxiv.org/abs/astro-ph/0504258 https://doi.org/10.1086/430815
 */
 
 #define _CRT_SECURE_NO_WARNINGS 1
@@ -24,40 +23,41 @@ NTHU
 
 //Global Variable --------------------
 //for other files(.c .h), please include "global_value.h" to use these variable.
-double A[LEVEL_N-1] = {0.0}; //Einstein coefficients,        AJJ' = A[J'] (J-1 = J')
-double C[TRANS_N] = {0.0}; //CJ->J' = C[(J-1)J/2+J'], C[] = {C10,C20,C21,C30,C31...}
-double E[TRANS_N] = {0.0}; //exp(-hv/kT),EJ->J' = E[(J-1)J/2+J'],
-double F[LEVEL_N-1] = {0.0}; //2h(vJJ')^3/c^2,               FJJ' = F[J'] (J-1 = J')
-double v[LEVEL_N-1] = {0.0}; //Frequency (GHz) from J to J'(vJJ'), vJJ' = v[J'] (J-1 = J'), GHz = 10^9 Hz
-double Br_n[LEVEL_N-1] = {0.0}; //normalized Cosmic Blackbody Radiation intensity in each level difference(J->J'=J-1)
-double energy_level[LEVEL_N] = {0.0}; //Potential Eenergy from ground state(J=0) for each level(J)
-									   //energy of each level (cm^-1)(unit of the inverse of wavelength(l))(1/l)
-double T;                   //temperature of the cloud
+double A[LEVEL_N-1] = {0.0};          // Einstein coefficients,        AJJ' = A[J'] (J-1 = J')
+double C[TRANS_N] = {0.0};            // CJ->J' = C[(J-1)J/2+J'], C[] = {C10,C20,C21,C30,C31...}
+double E[TRANS_N] = {0.0};            // exp(-hv/kT),EJ->J' = E[(J-1)J/2+J'],
+double F[LEVEL_N-1] = {0.0};          // 2h(vJJ')^3/c^2,               FJJ' = F[J'] (J-1 = J')
+double v[LEVEL_N-1] = {0.0};          // Frequency (GHz) from J to J'(vJJ'), vJJ' = v[J'] (J-1 = J'), GHz = 10^9 Hz
+double Br_n[LEVEL_N-1] = {0.0};       // Normalized Cosmic Blackbody Radiation intensity in each level difference(J->J'=J-1)
+double energy_level[LEVEL_N] = {0.0}; // Potential Eenergy from ground state(J=0) for each level(J)
+									  // energy of each level (cm^-1)(unit of the inverse of wavelength(l))(1/l)
+double T;                             // Temperature of the cloud
 
-double a_matrix_i[TOTAL_N*TOTAL_N]; //initial a_matrix[], use 1D array to simulate 2D matrix
-double a_matrix[TOTAL_N*TOTAL_N];   //use 1D array to simulate 2D matrix
+double a_matrix[TOTAL_N*TOTAL_N];     // A matrix. We use 1D array to represent 2D matrix
+double a_matrix_i[TOTAL_N*TOTAL_N];   // Initial a_matrix[]. We use 1D array to represent 2D matrix
 
-gsl_integration_workspace *w;        //GSL integration workspace
+gsl_integration_workspace *w;         // GSL integration workspace
 
-unsigned int loop_count = 0;        //count of loops
-unsigned int interval_count = 0;    //count for integral intervals number
+unsigned long long int loop_count = 0;        //count of loops
+unsigned long long int interval_count = 0;    //count for integral intervals number
 //Global Variable ------------------//
 
-void I_emerge_n(double n[], double tau[][2], double I[][2]);
+void I_emerge_n(const double n[], const double tau[][2], double I[][2]);
+void generate_output_filenames(char* file_name, char* file_name_g, int* file_name_index, double T);
+void output_a_matrix(double* a_matrix, char* a_matrix_filename);
 
 int main()
 {
 	double n[TOTAL_N] = {0.0};
 	double n_f[TOTAL_N] = {0.0};//tttt
-	double tau[LEVEL_N-1][2]; //Optical Depth for each I[][]
-	double TAU;
-	double I[LEVEL_N-1][2]; //Normalized Specific Intensity for each transition radiation,
-						     //I[j][q] = I(j+1 -> j)(q = 0/1 for parallel/perpendicular)
+	double tau[LEVEL_N-1][2]; // Optical Depth for each I[j][q]
+	double TAU;               // Optical Depth of j=0
+	double I[LEVEL_N-1][2];   // Normalized Specific Intensity for each transition radiation,
+						      // I[j][q] = I(j+1 -> j)(q = 0/1 for parallel/perpendicular)
 	
-	int i;
-	int j;
+	int i, j, k;
 	double Pt, It, Id, k0, TAUj;
-	int loop_count_tmp, interval_count_tmp;
+	unsigned long long int loop_count_tmp, interval_count_tmp;
 	
 	clock_t calcul_time[TAU_N+1];//+++++
 	time_t current_time; //for obtaing date
@@ -65,114 +65,59 @@ int main()
 		
 	char file_name[100];
 	FILE *fw; //.csv file and .dem file
-#if GNUPLOT_OUTPUT
+//#if GNUPLOT_OUTPUT
 	char file_name_g[100];//GNUPLOT file name
 	int file_name_index;
 	FILE *fwg; //.dat file for GNUPlot use
-#endif
-#if OUTPUT_A_MATRIX_I
-	FILE *amf;
-#endif
+//#endif
 	
 
-//==================================================================================
-//========================== Pre-Calculation =======================================
+// =========================== Initialization =============================
 
-	//Coefficients Data Reading _____________________________________________
+	// Read Coefficients Data _____________________________________________
 	if(lamda_data_reader(A, v, C, energy_level, &T)) //read A C v from file 'co.win.dat'
 	{
+		printf("Can't read coefficients data.\n");
+#ifdef WINDOWS
+		getchar();
+#endif // WINDOWS
 		return 0;
 	}
 	printf("Data Reading finished.\n");//*****
-	printf("Gas Temperature: %lf\n", T);
-	//Coefficients Data Reading ____________________________________________//
+	printf("Gas Temperature: %.0f K\n", T);
 	
 
-	//Out put file names process ------------------
-	i = 0;
-	i += sprintf(file_name + i, OUTPUT_VER); //ex: c3.2
-	i += sprintf(file_name + i, "[%d]",LEVEL_N);
-#if TwoD
-	i += sprintf(file_name + i, "[2D]");
-#elif OneD
-	i += sprintf(file_name + i, "[1D]");
-#elif Mix
-	i += sprintf(file_name + i, "[Mix%g]", MixRatio);
-#else //Isotropic
-	i += sprintf(file_name + i, "[Iso]");
-#endif
-	i += sprintf(file_name + i, "[%.2e][%gPI][%gK][%gK]", NC, OBS_ANG/M_PI, T, TEMP_B);
-	i += sprintf(file_name + i, OUTPUT_FILE_TAG); //ex: test2
-#if GNUPLOT_OUTPUT
-	file_name_index = i;
-	sprintf(file_name_g, "%s.dat", file_name);
-#endif
-	i += sprintf(file_name + i, OUTPUT_TYPE); //ex: .csv
-	//Out put file names process ----------------//
-	
+	// Generate Output file names __________________________________________
+	generate_output_filenames(file_name, file_name_g, &file_name_index, T);
 
-	//Open output files ---------------------------
-	if( (fw = fopen( file_name, "w" )) == NULL )//Open file for write in
-	{
+	// Open output files ______________________________________________
+	if( (fw = fopen( file_name, "w" )) == NULL ) {
 		printf( "Can not open the file '%s'\n" , file_name);
 		return 0;
 	}
 #if GNUPLOT_OUTPUT
 	//open GNUPLOT output file
-	if( (fwg = fopen( file_name_g, "w" )) == NULL )//Open file for write in
-	{
+	if( (fwg = fopen( file_name_g, "w" )) == NULL )	{
 		printf( "Can not open the file '%s'\n" , file_name_g);
 		return 0;
 	}
-#endif
-	//Open output files -------------------------//
-
-
+#endif	
 	
-	//Coefficients Preparation ______________________________________________
+	// Calculate Coefficients ______________________________________________
 	coeff_cal(energy_level, v, E, F, Br_n, T); //fill E[] and F[]
-	printf("Coefficients Calculation done.\n");//*****	
-	//Coefficients Preparation done _______________________________________//
-	
-	
+	printf("Coefficients Calculation done.\n");
+		
 
-	//Initialize a_matrix_i[] _______________________________________________
+	// Initialize a_matrix_i[] _______________________________________________
 	a_matrix_initialize(a_matrix_i); //fill a_matrix_i[] with C[]
-#if OUTPUT_A_MATRIX_I //check a_matrix_i[]********
-	printf("Output a_matrix_i[][] to file\n");
-	if( (amf = fopen( A_MATRIX_I_FILE, "w" )) == NULL )//Open file for debug a_matrix output
-	{
-		printf( "Can not open the file '%s' for debug output\n" , A_MATRIX_I_FILE);
-	}
-	i = 0;
-	j = 0;
-	k = 0;
-	while(j < TOTAL_N)
-	{
-		k += TOTAL_N;
-		while(i < k)
-		{
-			fprintf(amf, "%.2e",a_matrix_i[i]);
-			fprintf(amf, ",");
-			i++;
-		}
-		fprintf(amf, "\n");
-		j++;
-	}
-	if(amf)
-	{
-		if( fclose(amf) )
-        {
-			printf( "The file '%s' was not closed\n" , A_MATRIX_I_FILE);
-        }
-    }//*/
+#if OUTPUT_A_MATRIX_I
+	output_a_matrix(a_matrix_i, A_MATRIX_I_FILE);
 #endif
-	//Initialize a_matrix_i[] done ________________________________________//
 	
 
-
-	//n[] initialize ________________________________________________________
-	n_initial_cal(n,TEMP_B); //use thermal equilibrium to calculate n[]
+	// Initialize n[] ________________________________________________________
+	n_initial_cal(n, TEMP_B); //use thermal equilibrium to calculate n[]
+	//n_initial_cal(n, T); //use thermal equilibrium to calculate n[]
 #if SHOW_NI //show initial n[]
 	printf("ni[]:\n");//*****
 	i = 0;
@@ -192,20 +137,51 @@ int main()
 		i++;
 	}
 #endif
-	//n[] initialize done _________________________________________________//
 	
+#ifdef SHOW_S_INIT
+	printf("[Check initial source functions]\n");
+	printf("j: source_f_n(0), source_f_n(1), Br_n/2, tau[0], tau[1]:\n");
+	TAU = TAU_START; //set TAU to started tau
+	tau_array(TAU, tau, n); // Calculate tau[] for each levels along the line of sight
+	j = 0;
+	while (j < (LEVEL_N - 1)) {
+		printf("%d: %+.3e %+.3e %+.3e %+.3e %+.3e\n", j,
+			source_f_n(n, cos(OBS_ANG), 0, j + 1), source_f_n(n, cos(OBS_ANG), 1, j + 1),
+			Br_n[j] / 2, tau[j][0], tau[j][1]);
+		j++;
+	}
+#endif	
 
-	printf("A Matrix Initialization and Calculation of Initial Population done.\n");//*****
+#ifdef SHOW_I_INIT
+	// Check I_excess from initial n[]
+	printf("[Check initial intensity]\n");
+	TAU = TAU_START; //set TAU to started tau
+	tau_array(TAU, tau, n); // Calculate tau[] for each levels along the line of sight
+	I_emerge_n(n, tau, I);  // Calculate the emitted Intensities
+	k0 = k_f_n(n, cos(TAU_ANG), 0, 0);
+	printf("k0: %.3e\n", k0);
+	printf("j: TAUj, Pt, I[j][0], I[j][1], Id, v[j]\n");
+	for (j = 0; j < (LEVEL_N - 1); j++) {
+		TAUj = TAU * (k_f_n(n, cos(TAU_ANG), 0, j) / k0);
+		Pt = (I[j][1] - I[j][0]) / (I[j][0] + I[j][1]) * 100;  // Fractional polarization
+		It = (I[j][0] + I[j][1])*h_CONST*v[j] / k_CONST * 1E9; // Total intensity
+		Id = (I[j][1] - I[j][0])*h_CONST*v[j] / k_CONST * 1E9; // Intensity difference
 
-//========================== Pre-Calculation done ================================//
-//================================================================================//
+		printf("%d: %.3e, %3f%%, %.3e, %.3e, %.3e, %.3e\n",
+			j, TAUj, Pt, I[j][0] * h_CONST*v[j] / k_CONST * 1E9, I[j][1] * h_CONST*v[j] / k_CONST * 1E9, Id, v[j]);
+	}
+#endif
+
+	printf("A Matrix Initialization and Calculation of Initial Population done.\n\n");//*****
+
+// ========================= Initialization done =======================//
 
 	
-	//Write column name to the files--------
+	// Write column name to the output files
 	i = 0;
 	while(i < (LEVEL_N-1))
 	{
-		fprintf(fw,"TAU[%d],P%d(%%),I[%d][0](K),I[%d][1](K),Id[%d](K),", i, i, i, i, i);
+		fprintf(fw,"TAU[%d], P%d(%%), I[%d][0](K), I[%d][1](K), Id[%d](K),", i, i, i, i, i);
 		i++;
 	}
 	i = 0;
@@ -214,44 +190,53 @@ int main()
 		fprintf(fw,"n[%d],", i);
 		i++;
 	}
-	fprintf(fw,"cal_time,loop_count,interval_count,0 = parallel; 1 = perpendicular\n");
-	//------------------------------------//
+	fprintf(fw,"cal_time, loop_count, interval_count, 0 = parallel; 1 = perpendicular\n");
 
 	
-//===============================================================================
-//========================== Main Calculation ===================================
+// ==============================================================================
+// ========================= Main Calculation ===================================
 
-	loop_count_tmp = loop_count; //+++++
-	interval_count_tmp = interval_count;//+++++
-	calcul_time[0] = clock();//+++++
+	loop_count_tmp = loop_count;
+	interval_count_tmp = interval_count;
+	calcul_time[0] = clock();
 	w = gsl_integration_workspace_alloc (Gsl_Integ_Space); //allocate GSL integration workspace
 
-	//Main Loop-----------------------------------------------------------------
+	// Main Loop----------------------------------------------------------------
 	TAU = TAU_START; //set TAU to started tau
 	i = 0;
 	while(i < TAU_N) //TAU_N = number of points in the curve
 	{
-		printf("%d:%.2e ", i, TAU);
+		printf("%d: %.2e ", i, TAU);
 
 #if SLOW_MODE
-		n_initial_cal(n,T); //use thermal equilibrium to calculate n[]
+		n_initial_cal(n,T); // Use thermal equilibrium to initialize n[] for each TAU
 #endif
 		
-		//Calculate n[] _____________________________________________________
-		rate_eq_solve(n,TAU); //Main Calculation
-		//Calculate n[] done ______________________________________________//
+		// Calculate n[] ____________________________________________________
+		rate_eq_solve(n, TAU);  // Main Calculation
 		
 		
-		//Calculate I[][] ___________________________________________________
-		tau_array(TAU, tau, n); //calculate tau[] for each levels along the line of sight
-		I_emerge_n(n, tau, I);  //calculate the emitted Intensities
-		//Calculate I[][] done ____________________________________________//
-		
+		// Calculate I[][] __________________________________________________
+		tau_array(TAU, tau, n); // Build tau[] for each levels along the line of sight
+		I_emerge_n(n, tau, I);  // calculate the emitted Intensities
+
+#ifdef SHOW_S
+		if (i == 0) {
+			printf("\nj: source_f_n(0), source_f_n(1), Br_n/2, tau[0], tau[1]:\n");
+			j = 0;
+			while (j < (LEVEL_N - 1)){
+				printf("%d: %+.3e %+.3e %+.3e %+.3e %+.3e\n", j, 
+					source_f_n(n, cos(OBS_ANG), 0, j + 1), source_f_n(n, cos(OBS_ANG), 1, j + 1), 
+					Br_n[j] / 2, tau[j][0], tau[j][1]);
+				j++;
+			}
+		}		
+#endif		
 		calcul_time[i+1] = clock(); //+++++
 		
 
 		//Write results to the files ----------------------
-		//Output polarization results ------
+		//Output I and polarization results ------
 		k0 = k_f_n(n, cos(TAU_ANG), 0, 0);
 		j = 0;
 		while(j < (LEVEL_N-1))
@@ -267,16 +252,16 @@ int main()
 			Id = (fabs(I[j][1])-fabs(I[j][0]))*h_CONST*v[j]/k_CONST*1E9; //Intensity difference
 #endif
 
-			fprintf(fw,"%.10e,%5f%%,%.10e,%.10e,%.10e,"
-				, TAUj, Pt, I[j][0]*h_CONST*v[j]/k_CONST*1E9, I[j][1]*h_CONST*v[j]/k_CONST*1E9, Id); //write results to .csv file
+			fprintf(fw, "%.10e, %5f%%, %.10e, %.10e, %.10e,",
+				TAUj, Pt, I[j][0]*h_CONST*v[j]/k_CONST*1E9, I[j][1]*h_CONST*v[j]/k_CONST*1E9, Id); //write results to .csv file
 #if GNUPLOT_OUTPUT
-			fprintf(fwg,"%.10e %5f%% %.10e %.10e %.10e "
-				, TAUj, Pt, I[j][0]*h_CONST*v[j]/k_CONST*1E9, It, Id); //write results to .dat file
+			fprintf(fwg, "%.10e %5f%% %.10e %.10e %.10e ",
+				TAUj, Pt, I[j][0]*h_CONST*v[j]/k_CONST*1E9, It, Id); //write results to .dat file
 #endif
 			j++;
 		}
 
-		//Output population results --------
+		//Output population n[] results --------
 		j = 0;
 		while(j < TOTAL_N)
 		{
@@ -288,35 +273,32 @@ int main()
 		}
 		
 		//Output calculating time ----------
-		fprintf(fw,"%d,%d,%d\n", (int)(calcul_time[i+1] - calcul_time[i]), loop_count - loop_count_tmp
-			, interval_count - interval_count_tmp);//+++++
+		int d_calcul_time = (int)(calcul_time[i + 1] - calcul_time[i]);
+		unsigned long long d_loop_count = loop_count - loop_count_tmp;
+		unsigned long long d_interval_count = interval_count - interval_count_tmp;
+		fprintf(fw,"%d, %llu, %llu\n", d_calcul_time, d_loop_count, d_interval_count);//+++++
 #if GNUPLOT_OUTPUT
-		fprintf(fwg,"%d %d %d\n", (int)(calcul_time[i+1] - calcul_time[i]), loop_count - loop_count_tmp
-			, interval_count - interval_count_tmp);//+++++
+		fprintf(fwg,"%d %llu %llu\n", d_calcul_time, d_loop_count, d_interval_count);//+++++
 #endif
-		//----------------------------------------------//
-
-
+		
 		//Show current progress to the screen ------------
-		printf("%lfs %dloops i:%d %.2lf\n", (double)calcul_time[i+1]/CLOCKS_PER_SEC, loop_count - loop_count_tmp
-			, interval_count - interval_count_tmp
-			, (interval_count - interval_count_tmp)/(double)(loop_count - loop_count_tmp));//+++++
+		printf("%lfs %lluloops i:%llu %.2lf\n", (double)calcul_time[i+1]/CLOCKS_PER_SEC, d_loop_count, d_interval_count,
+			d_interval_count /(double)(d_loop_count));//+++++
 		//----------------------------------------------//
 		
-
-		loop_count_tmp = loop_count;//+++++
-		interval_count_tmp = interval_count;//+++++
-
+		loop_count_tmp = loop_count;
+		interval_count_tmp = interval_count;
+		
 		TAU *= TAU_INC_RATIO; //TAU increase
 		i++;
 	}
-	//Main Loop---------------------------------------------------------------//
+	// Main Loop--------------------------------------------------------------//
 
-	printf("Total loops: %d    Total integral intervals: %d\n", loop_count, interval_count);
+	printf("Total loops: %llu    Total integral intervals: %llu\n", loop_count, interval_count);
 	gsl_integration_workspace_free (w);  //release GSL integration workspace
 
-//========================== Main Calculation done ============================//
-//=============================================================================//
+// ========================= Main Calculation done ============================//
+// ============================================================================//
 
 
 
@@ -415,7 +397,7 @@ int main()
 	fprintf(fw, "REL_PREC,%.10e,,EpsRel,%.10e,,EpsAbs,%.10e\n", REL_PREC, EpsRel, EpsAbs);
 	fprintf(fw, "Gsl_Integ_Space,%d,,Slow Mode,%d\n", Gsl_Integ_Space, SLOW_MODE);
 	fprintf(fw, "Time spend(ms),%d\n", (int)calcul_time[TAU_N]);//+++++
-	fprintf(fw, "Loops,%d,,Intervals,%d\n", loop_count, interval_count);
+	fprintf(fw, "Loops,%llu,,Intervals,%llu\n", loop_count, interval_count);
 	current_time = time(NULL);
 	c_time_string = ctime(&current_time);
 	fprintf(fw, "Version,%s,,Date,%s\n",OUTPUT_VER,c_time_string);
@@ -444,7 +426,7 @@ int main()
 	//Close result data files ------------//
 
 
-	//Generate GNUPLOT .dem file -------------
+	// Generate GNUPLOT .dem file -------------
 	sprintf(file_name + file_name_index, ".dem");
 	if( (fwg = fopen( file_name, "w" )) == NULL )//Open file for write in
 	{
@@ -481,19 +463,77 @@ int main()
         }
     }
 #endif
-	//Generate GNUPLOT .dem file -------//
+	// Generate GNUPLOT .dem file -------//
 	
+	printf("Finished calculation!\n");
+#ifdef WINDOWS
+	getchar();
+#endif // WINDOWS
 	return 0;
 }
 
-void I_emerge_n(double n[], double tau[][2], double I[][2])
+void I_emerge_n(const double n[], const double tau[][2], double I[][2])
 //normalized emerge specific intensity,(intensity divided by F = 2hv^3/c^2)
 {
 	int j = 0;
 	while(j < (LEVEL_N-1))
 	{
-		I[j][0] = ( source_f_n(n, cos(OBS_ANG), 0,j+1) - Br_n[j]/2 )*( 1 - exp(-1*tau[j][0]) );
-		I[j][1] = ( source_f_n(n, cos(OBS_ANG), 1,j+1) - Br_n[j]/2 )*( 1 - exp(-1*tau[j][1]) );
+		I[j][0] = ( source_f_n(n, cos(OBS_ANG), 0, j+1) - Br_n[j]/2 )*( 1 - exp(-1*tau[j][0]) );
+		I[j][1] = ( source_f_n(n, cos(OBS_ANG), 1, j+1) - Br_n[j]/2 )*( 1 - exp(-1*tau[j][1]) );
 		j++;
 	}
+}
+
+void generate_output_filenames(char* file_name, char* file_name_g, int* file_name_index, double T) {
+	int i = 0;
+	i += sprintf(file_name + i, OUTPUT_VER); //ex: c3.2
+	i += sprintf(file_name + i, "[%d]", LEVEL_N);
+#if TwoD
+	i += sprintf(file_name + i, "[2D]");
+#elif OneD
+	i += sprintf(file_name + i, "[1D]");
+#elif Mix
+	i += sprintf(file_name + i, "[Mix%g]", MixRatio);
+#else //Isotropic
+	i += sprintf(file_name + i, "[Iso]");
+#endif
+	i += sprintf(file_name + i, "[%.2e][%gPI][%gK][%gK]", NC, OBS_ANG / M_PI, T, TEMP_B);
+	i += sprintf(file_name + i, OUTPUT_FILE_TAG); //ex: test2
+												  //#if GNUPLOT_OUTPUT
+	(*file_name_index) = i;
+	sprintf(file_name_g, "%s.dat", file_name);
+	//#endif
+	i += sprintf(file_name + i, OUTPUT_TYPE); //ex: .csv
+	return;
+}
+
+void output_a_matrix(double* a_matrix, char* a_matrix_filename) {
+	printf("Output a_matri[][] to file %s\n", a_matrix_filename);
+	FILE *amf;
+	if ((amf = fopen(a_matrix_filename, "w")) == NULL)//Open file for debug a_matrix output
+	{
+		printf("Can not open the file '%s' for debug output\n", a_matrix_filename);
+	}
+	int i = 0;
+	int j = 0;
+	int k = 0;
+	while (j < TOTAL_N)
+	{
+		k += TOTAL_N;
+		while (i < k)
+		{
+			fprintf(amf, "%.2e", a_matrix[i]);
+			fprintf(amf, ",");
+			i++;
+		}
+		fprintf(amf, "\n");
+		j++;
+	}
+	if (amf)
+	{
+		if (fclose(amf))
+		{
+			printf("The file '%s' was not closed\n", a_matrix_filename);
+		}
+	}//*/
 }

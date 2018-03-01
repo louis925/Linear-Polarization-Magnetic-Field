@@ -11,6 +11,7 @@ Made by Louis
 NTHU
 2012.11.17
 */
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <stdio.h>
 #include "physics_coeff.h"
@@ -36,7 +37,7 @@ int lamda_data_reader(double *A, double *v, double *C, double *energy_level, dou
 	//------------------- Open files -------------------------
 	if( (file1 = fopen( file_name_read, "r" )) == NULL )//Open file for CO
 	{
-		printf( "The file '%s' was not opened\n", file_name_read);
+		printf( "Cannot open file '%s'!\n", file_name_read);
 		return 1;
 	}
 
@@ -102,11 +103,19 @@ int lamda_data_reader(double *A, double *v, double *C, double *energy_level, dou
 	}
 
 #if SHOW_A_V
+#if USE_E_LEVEL_FOR_FREQUENCY
+	printf(" j  A[]:\n");
+#else
 	printf(" j  A[] v[]:\n");
+#endif
 	i=0;
 	while(i < (LEVEL_N-1))
 	{
-		printf("%2d: %.3e %f\n", i, A[i], v[i]);
+#if USE_E_LEVEL_FOR_FREQUENCY
+		printf("%2d: %.3e\n", i, A[i]);
+#else
+		printf("%2d: %.3e %.3e\n", i, A[i], v[i]);
+#endif
 		i++;
 	}
 #endif
@@ -186,7 +195,7 @@ int lamda_data_reader(double *A, double *v, double *C, double *energy_level, dou
 	{
 		if ( fclose(file1) )
         {
-			printf( "The file '%s' was not closed\n", file_name_read);
+			printf( "Cannot close the file '%s'.\n", file_name_read);
         }
     }
 
@@ -199,7 +208,6 @@ int lamda_data_reader(double *A, double *v, double *C, double *energy_level, dou
 		i++;
 	}
 #endif
-
 
 	return 0;
 }

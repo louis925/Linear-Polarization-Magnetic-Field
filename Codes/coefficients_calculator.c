@@ -7,8 +7,8 @@
 
 #include "coefficients_calculator.h"
 
-int coeff_cal(double *energy_level, double *v, double *E, double *F, double *Br_n, double T)
-//calculate E[], F[], Br_n[] from frequency v[], energy_level[], temperature (T)
+// Calculate Boltzmann factor E[], frequency v[], background radiation Br_n[] from energy_level[], temperature T
+int coeff_cal(const double *energy_level, double *v, double *E, double *F, double *Br_n, double T)
 {
 	int i;
 	int j,jp;
@@ -21,8 +21,8 @@ int coeff_cal(double *energy_level, double *v, double *E, double *F, double *Br_
 	FILE *brf; //Br_n[] debug output use
 #endif
 
-	//fill E[], E = exp(-hv/kT) ====================================
-	//E[]: Boltzmann factor
+	// E[] Boltzmann factor ====================================
+	// E = exp(-hv/kT)
 	x = h_CONST/k_CONST*LIGHT_SPEED/T*-100.0;
 	i = 0; //index of E[]
 	j = 1; //upper level
@@ -66,20 +66,28 @@ int coeff_cal(double *energy_level, double *v, double *E, double *F, double *Br_
 	}
 #endif
 
+
 #if USE_E_LEVEL_FOR_FREQUENCY
-	//[2012.11.17]Use energy level data to calculate frequency of radiation
+	// v[] frequency ====================================
+	// Use energy level data to calculate frequency of radiation [2012.11.17]
 	x = LIGHT_SPEED*100.0/1E9; //the unit of frequency v[] is GHz, GHz = 10^9 Hz
 	j = 0;
+#if SHOW_A_V
+	printf(" j: frequence\n");
+#endif
 	while(j < (LEVEL_N-1))
 	{
 		v[j] = x*(energy_level[j+1] - energy_level[j]);
+#if SHOW_A_V
+		printf("%2d: %.3e\n", j, v[j]);
+#endif
 		j++;
 	}
 #endif
 
-	//fill Br_n[], Br_n = 1/(exp(hv/kTb)-1) ========================
-	//Br_n[]: normalized intensity of the cosmic background radiation
-	//from Planck's law of black-body radiation: B(T,v)= 2hv^3/c^2/(exp(hv/kT)-1)
+	// Br_n[] normalized intensity of the cosmic background radiation ========================
+	// Br_n = 1/(exp(hv/kTb)-1) 
+	// from Planck's law of black-body radiation: B(T,v)= 2hv^3/c^2/(exp(hv/kT)-1)
 #if USE_E_LEVEL_FOR_FREQUENCY //[2012.11.17]
 	x = LIGHT_SPEED*100.0*h_CONST/k_CONST/TEMP_B;
 	j = 0;

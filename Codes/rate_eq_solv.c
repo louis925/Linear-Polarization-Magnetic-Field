@@ -24,31 +24,29 @@ void AR_fill_1(double a_row[TOTAL_N], double R[LEVEL_N-1][2], int J, int M); //f
 
 void rate_eq_solve(double n[TOTAL_N], double TAU)
 {
-	double b[TOTAL_N] = {Nt,0.0};
-	double n_last[TOTAL_N];         //store the result n[] in last step for comparing to next step
-	double R[LEVEL_N-1][2] = {{0.0}}; //results of Rate_f_n()
-	int converge;                   //decide wheither the result reachs the accuracy REL_PREC
-	int s,j,l;
+	double b[TOTAL_N] = {Nt, 0.0};  
+	double n_last[TOTAL_N];           // store the result n[] in last step for comparing to next step
+	double R[LEVEL_N-1][2] = {{0.0}}; // results of Rate_f_n()
+	int converge;                     // weither n[] converge
+	int s, j, l;
 	
 #if 0
 	int i,k; //debug use
 	FILE *amf; //debug use
 #endif
 
+	gsl_permutation *gsl_p;
 	gsl_matrix_view gsl_a_m;
 	gsl_vector_view gsl_b_v;
 	gsl_vector_view gsl_n_v;
-	gsl_permutation *gsl_p;
-	
 	gsl_p = gsl_permutation_alloc (TOTAL_N);
 	gsl_a_m = gsl_matrix_view_array (a_matrix, TOTAL_N, TOTAL_N);
 	gsl_b_v = gsl_vector_view_array (b, TOTAL_N);
 	gsl_n_v = gsl_vector_view_array (n, TOTAL_N);
 
 	l = 0;
-	do//l < N_loop
-	{
-		Rate_f_n_cal(n, TAU, R);//Calculate the R[] coefficients
+	do {
+		Rate_f_n_cal(n, TAU, R); // Calculate the R[] coefficients
 			
 #if 0
 		//print n[] for debug*****
@@ -65,24 +63,19 @@ void rate_eq_solve(double n[TOTAL_N], double TAU)
 		//}
 #endif	
 
-		j=0;//copy n[] to n_last[]
-		while(j < TOTAL_N)
-		{
-			n_last[j] = n[j];
-			j++;
+		// Copy n[] to n_last[]
+		for(j = 0; j < TOTAL_N; j++) { 
+			n_last[j] = n[j]; 
 		}
-		j=0;//copy a_matrix_i[] to a_matrix[]
-		while(j < TOTAL_N*TOTAL_N)
-		{
+		// Copy a_matrix_i[] to a_matrix[]
+		for(j = 0; j < TOTAL_N*TOTAL_N; j++) {
 			a_matrix[j] = a_matrix_i[j];
 			//a_matrix[j] = 0.0;
-			j++;
 		}
 		
-		//______________________________________________________________________________
-		//fill rate equations(a_matrix[]) with A[] and R[]
+		// Fill rate equations(a_matrix[]) with A[] and R[] ____________________________
 		rate_eq_fill(a_matrix, R);
-		//____________________________________________________________________________//
+		// ___________________________________________________________________________//
 
 #if 0
 		//check a_matrix[]********
@@ -117,12 +110,13 @@ void rate_eq_solve(double n[TOTAL_N], double TAU)
 			}			
 		}//*/
 #endif	
-		//______________________________________________________________________________
-		//Use LU decomposition method to solve the a[TOTAL_N][TOTAL_N] x n[TOTAL_N] = b[TOTAL_N] problem
+		// _____________________________________________________________________________
+		// Compute n[] by solving a[TOTAL_N][TOTAL_N] x n[TOTAL_N] = b[TOTAL_N] problem
+		// using the LU decomposition method
 		gsl_linalg_LU_decomp (&gsl_a_m.matrix, gsl_p, &s);
 		gsl_linalg_LU_solve (&gsl_a_m.matrix, gsl_p, &gsl_b_v.vector, &gsl_n_v.vector);
 		loop_count++;
-		//____________________________________________________________________________//
+		// ___________________________________________________________________________//
 		
 #if 0
 		//if(tau[0][0] > 0.018) //debug for LEVEL_N=7 tau=0.01905460718
@@ -131,39 +125,35 @@ void rate_eq_solve(double n[TOTAL_N], double TAU)
 			j=0;//print n[] for debug*****
 			while(j < TOTAL_N)
 			{
-				printf("%.7e,", n[j]);
+				printf("%.7e, ", n[j]);
 				j++;
 			}
 			printf("\n");//*****/
 		//}
 #endif	
 		
-		j = 0;
-		while(j < TOTAL_N)//Checks the accuracy to decide whether it converges
+		for (j = 0; j < TOTAL_N; j++) // Checks the accuracy to decide whether it converges
 		{
-			if( fabs(n[j] - n_last[j]) < fabs(n[j]) * REL_PREC)
-			{
-				converge = 1; //OK, Converge
+			if( fabs(n[j] - n_last[j]) < fabs(n[j]) * REL_PREC)	{
+				converge = 1; // OK, Converge
 			}
-			else
-			{
-				converge = 0; //Doesn't Converge, need to run again
-				j = TOTAL_N;
-			}
-			j++;
+			else {
+				converge = 0; // Doesn't converge, run again
+				j = TOTAL_N;  // Skip checking the rest of j
+			}		
 		}
-
 		l++;
 	}
-	while((!converge));//If converge, then stop.
+	while(!converge); // Stop when converge. //l < N_loop
 	
 #if 0
 	//print n[] for debug*****
-	printf("%d:\n", i);
+	//printf("%d:\n", i);
+	printf("\nn[] for debug\n");
 	j=0;
 	while(j < TOTAL_N)
 	{
-		printf("%.5e,", n[j]);
+		printf("%+.3e, ", n[j]);
 		j++;
 	}
 	printf("\n");
