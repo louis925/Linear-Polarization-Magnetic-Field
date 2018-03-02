@@ -3,6 +3,7 @@
 
 #define OUTPUT_VER "c3.7"
 #define OUTPUT_FILE_TAG "co" //any additional description of the run
+//#define OUTPUT_FILE_TAG "sio" //any additional description of the run
 #define OUTPUT_TYPE ".csv"
 //output file name will be: OUTPUT_VER[LEVEL_N][Dim][NC NC][OBS_ANG PI][T K][TEMP_B K]OUTPUT_FILE_TAG.OUTPUT_TYPE
 //example: c3.4[5][2D][NC 2.1827E1][0.5PI][30K][2.725K]co.csv
@@ -30,7 +31,7 @@
 //#define NC 5.45370E+02              //co.green 10K Goldreich C/A = 0.212
 //#define NC 3.7641975E+04            //sio 10K E4
 //#define NC 4.4188406E+04            //sio 30K E4
-//#define NC 5.64629630E4             //sio 100K E4
+//#define NC 5.64629630E6             //sio 100K E4
 //#define NC 6.62826087E4             //sio 500K E4
 #define NC 2E3
                                      
@@ -97,6 +98,7 @@
 #define SHOW_FIRST_N
 #define SHOW_I_INIT
 #define SHOW_S_INIT
+#define SHOW_R 1
 //debug use option-----------------------------//
 
 //for Visual Stdio 2005 Compiler

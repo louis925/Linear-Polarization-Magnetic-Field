@@ -30,8 +30,7 @@ int indexJJ(int J, int Jp) {
 }
 
 // Einstein A coefficient for the transition (J, M)->(J-1, M+dM)
-double A_coeff(int J, int M, int dM)
-{
+double A_coeff(int J, int M, int dM) {
 	switch(dM)
 	{
 	case 0:
@@ -166,10 +165,8 @@ double k_f_n(const double n[TOTAL_N], double angle, int q, int j)
 	}
 }
 
-double beta_f(double tau) // Escape probability function
-{
-	return (1 - exp(-1*tau)) / tau;
-}
+// Escape probability function
+double beta_f(double tau) { return (1 - exp(-1*tau)) / tau; }
 
 // Normalized profile-averaged specific intensity (divided by F_JJ')
 double I_pa_n(const double n[TOTAL_N], double angle, int q, double tau_d, int j) 
@@ -181,9 +178,9 @@ double I_pa_n(const double n[TOTAL_N], double angle, int q, double tau_d, int j)
 
 // Calculate multi-level normalized rate functions R[][]
 // Given n[], tau[0], write result to R[][]
-void Rate_f_n_cal(const double n[TOTAL_N], double tau, double R[LEVEL_N-1][2]) 
-{
-	int j; //J -> j, J-1 = j = J' //change at 2009.11.13
+void Rate_f_n_cal(const double n[TOTAL_N], double tau, double R[LEVEL_N-1][2]) {
+	// R[j][dM] for the transition from J to j = J' = J-1 with |M - M'| = dM
+	int j; // j = J' = J-1
 	double error;
 	unsigned int intervals;
 	Fn_Param params;
@@ -191,20 +188,21 @@ void Rate_f_n_cal(const double n[TOTAL_N], double tau, double R[LEVEL_N-1][2])
 	params.n = n;
 	params.tau = tau; //the total optical depth tau[0] in this case(computation)
 	params.k0 = k_f_n(n, cos(TAU_ANG), 0, 0); //[2010.01.22] OBS_ANG was replaced by TAU_ANG
-	
-	j = 0;
-	while(j < (LEVEL_N-1)) //j = 0 ~ LEVEL_N-2
+		
+	for (j = 0; j < (LEVEL_N - 1); j++) //j = 0 ~ LEVEL_N-2
 	{
 		params.j = j;
-		R[j][0] = integral(i_f_r0m, &params, &error, &intervals) *3.0 / 2.0;
+		R[j][0] = integral(i_f_r0m, &params, &error, &intervals) * 3.0 / 2.0;
 		// R has already integrated over azimuth angle. Thus, it gains a 1/2 factor
 		// The unit of R are the same as that in Deguchi and Watson's paper(1984)
 		interval_count += (unsigned long long)intervals;
 		
-		R[j][1] = integral(i_f_r1m, &params, &error, &intervals) *3.0 / 4.0;
+		R[j][1] = integral(i_f_r1m, &params, &error, &intervals) * 3.0 / 4.0;
 		// R has already integrated over azimuth angle. Thus, it gains a 1/2 factor
 		interval_count += (unsigned long long)intervals;
-		j++;
+		
+		//R[j][0] = max(R[j][0], 0.);  // Prevent negative intensity [2018.03.01]
+		//R[j][1] = max(R[j][1], 0.);  // Prevent negative intensity [2018.03.01]		
 	}
 }
 
@@ -274,9 +272,8 @@ void tau_array(double TAU, double tau[][2], const double n[TOTAL_N])
 	int j;
 	double k0;
 	k0 = k_f_n(n, cos(TAU_ANG), 0, 0);  // OBS_ANG was replaced by TAU_ANG [2010.01.22]
-	j=0;
-	while(j < (LEVEL_N - 1))
-	{	
+	
+	for(j = 0; j < (LEVEL_N - 1); j++) {	
 #if TwoD  // use s*s for 2D velocity field, or c*c for 1D velocity field
 		tau[j][0] = TAU * (k_f_n(n,cos(OBS_ANG),0,j)/k0) * (sin(TAU_ANG)*sin(TAU_ANG))/(sin(OBS_ANG)*sin(OBS_ANG));
 		tau[j][1] = TAU * (k_f_n(n,cos(OBS_ANG),1,j)/k0) * (sin(TAU_ANG)*sin(TAU_ANG))/(sin(OBS_ANG)*sin(OBS_ANG));
@@ -290,7 +287,5 @@ void tau_array(double TAU, double tau[][2], const double n[TOTAL_N])
 		tau[j][0] = TAU * (k_f_n(n,cos(OBS_ANG),0,j)/k0);
 		tau[j][1] = TAU * (k_f_n(n,cos(OBS_ANG),1,j)/k0);
 #endif
-
-		j++;
 	}
 }

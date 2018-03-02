@@ -241,7 +241,7 @@ int main()
 		j = 0;
 		while(j < (LEVEL_N-1))
 		{
-			TAUj = TAU * (k_f_n(n,cos(TAU_ANG),0,j)/k0);
+			TAUj = TAU * (k_f_n(n, cos(TAU_ANG), 0, j) / k0);
 #if 1
 			Pt = (I[j][1] - I[j][0])/(I[j][0] + I[j][1])*100; //Fractional polarization
 			It = (I[j][0]+I[j][1])*h_CONST*v[j]/k_CONST*1E9; //Total intensity
@@ -504,7 +504,6 @@ void generate_output_filenames(char* file_name, char* file_name_g, int* file_nam
 	sprintf(file_name_g, "%s.dat", file_name);
 	//#endif
 	i += sprintf(file_name + i, OUTPUT_TYPE); //ex: .csv
-	return;
 }
 
 void output_a_matrix(double* a_matrix, char* a_matrix_filename) {

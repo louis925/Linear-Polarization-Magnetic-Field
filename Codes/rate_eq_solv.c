@@ -10,7 +10,6 @@ NTHU
 #include <stdio.h>
 #include <gsl/gsl_linalg.h>
 #include <math.h>
-
 #include "physics_function.h"
 #include "physics_coeff.h"
 #include "global_value.h"
@@ -18,18 +17,25 @@ NTHU
 
 #include "rate_eq_solv.h"
 
-void rate_eq_fill(double a_matrix[TOTAL_N*TOTAL_N], double R[LEVEL_N-1][2]);         //fill a_matrix with A[] and R[], call AR_fill_0 and _1
-void AR_fill_0(double a_row[TOTAL_N], double R[LEVEL_N-1][2], int J);        //fill a_matrix with A[] and R[], for M = 0
-void AR_fill_1(double a_row[TOTAL_N], double R[LEVEL_N-1][2], int J, int M); //fill a_matrix with A[] and R[], for M > 0
+// Fill a_matrix with A[] and R[], call AR_fill_0 and _1
+void rate_eq_fill(double a_matrix[TOTAL_N*TOTAL_N], const double R[LEVEL_N-1][2]); 
+
+// Fill a_matrix with A[] and R[], for M = 0
+void AR_fill_0(double a_row[TOTAL_N], const double R[LEVEL_N-1][2], int J);
+
+// Fill a_matrix with A[] and R[], for M > 0
+void AR_fill_1(double a_row[TOTAL_N], const double R[LEVEL_N-1][2], int J, int M);
 
 void rate_eq_solve(double n[TOTAL_N], double TAU)
 {
 	double b[TOTAL_N] = {Nt, 0.0};  
-	double n_last[TOTAL_N];           // store the result n[] in last step for comparing to next step
-	double R[LEVEL_N-1][2] = {{0.0}}; // results of Rate_f_n()
-	int converge;                     // weither n[] converge
-	int s, j, l;
-	
+	double n_last[TOTAL_N];           // Result n[] in last step for comparing to next step
+	double R[LEVEL_N-1][2] = {{0.0}}; // Results of Rate_f_n()
+	int converge;                     // Weither n[] converge
+	int s, j;
+	int l;                            // Number of loops
+	int R_sign = 0;                   // Sign of R[][]. 1: R contains negative, 0; all positive
+
 #if 0
 	int i,k; //debug use
 	FILE *amf; //debug use
@@ -46,32 +52,24 @@ void rate_eq_solve(double n[TOTAL_N], double TAU)
 
 	l = 0;
 	do {
-		Rate_f_n_cal(n, TAU, R); // Calculate the R[] coefficients
+		Rate_f_n_cal(n, TAU, R); // Calculate the R[][] coefficients
 			
-#if 0
-		//print n[] for debug*****
-		//if(TAU > 0.018) //debug for LEVEL_N=7 tau=0.01905460718
-		//{
-			printf("%d:\n", i);//*****
-			j=0;
-			while(j < TOTAL_N)
-			{
-				printf("%.5e,", n[j]);
-				j++;
+#if SHOW_R
+		//print R[][] for debug*****
+		if(l == 0) {
+			printf("\n");
+			printf("R[][] initial: ");//*****
+			for (int i = 0; i < LEVEL_N - 1; i++) {
+				printf("%.2e %.2e ", R[i][0], R[i][1]);
 			}
 			printf("\n");//*****/
-		//}
+		}
 #endif	
 
 		// Copy n[] to n_last[]
-		for(j = 0; j < TOTAL_N; j++) { 
-			n_last[j] = n[j]; 
-		}
+		for(j = 0; j < TOTAL_N; j++) { n_last[j] = n[j]; }
 		// Copy a_matrix_i[] to a_matrix[]
-		for(j = 0; j < TOTAL_N*TOTAL_N; j++) {
-			a_matrix[j] = a_matrix_i[j];
-			//a_matrix[j] = 0.0;
-		}
+		for(j = 0; j < TOTAL_N*TOTAL_N; j++) { a_matrix[j] = a_matrix_i[j];	}
 		
 		// Fill rate equations(a_matrix[]) with A[] and R[] ____________________________
 		rate_eq_fill(a_matrix, R);
@@ -146,6 +144,24 @@ void rate_eq_solve(double n[TOTAL_N], double TAU)
 	}
 	while(!converge); // Stop when converge. //l < N_loop
 	
+	// Check if R[][] are positive
+	R_sign = 0;
+	for (int i = 0; i < LEVEL_N - 1; i++) {
+		if (R[i][0] < 0 || R[i][1] < 0) { R_sign = 1; }
+	}
+	if (R_sign == 1) { 
+		printf("R[][] constains negative values! Solution may not valid.\n"); 
+	}
+
+#if SHOW_R
+	//print R[][] for debug*****
+	printf("R[][] final  : ");//*****
+	for (int i = 0; i < LEVEL_N - 1; i++) {
+		printf("%.2e %.2e ", R[i][0], R[i][1]);
+	}
+	printf("\n");//*****/
+#endif	
+
 #if 0
 	//print n[] for debug*****
 	//printf("%d:\n", i);
@@ -162,55 +178,47 @@ void rate_eq_solve(double n[TOTAL_N], double TAU)
 	gsl_permutation_free (gsl_p);	
 }
 
-void n_initial_cal(double n[TOTAL_N], double t)//New version, use thermal equilibrium at t K¡@directly
-{
+// Initialize n[] using thermal equilibrium at temperature T(K).
+void n_initial_cal(double n[TOTAL_N], double T) {
 	double e[LEVEL_N];
-	double x,et = 0;
-	int j,m;
-	
-	x = h_CONST/k_CONST*LIGHT_SPEED/t*-100.0;
-	
-	j = 0;
-	while(j < LEVEL_N)
-	{
+	double x, et = 0;
+	int j, m;
+	x = -100.0 * h_CONST * LIGHT_SPEED / k_CONST / T;
+	for (j = 0; j < LEVEL_N; j++) {
 		e[j] = exp(x*(energy_level[j] - energy_level[0]));
-		et += e[j]*(2*j+1);
-		j++;
+		et += e[j] * (2 * j + 1);
 	}
-
-	j = 0;
-	while(j < LEVEL_N)
-	{
-		m = 0;
-		while(m <= j)
-		{
-			n[indexN(j,m)] = e[j]/et*Nt;
-			m++;
+	for (j = 0; j < LEVEL_N; j++) {
+		for (m = 0; m <= j; m++) {
+			n[indexN(j, m)] = Nt * e[j] / et;
 		}
-		j++;
 	}
-}//*/
+}
 
+// Initialize a_matrix[]
+// Fill first row with particle number conservation. Fill the rest rows with collisional excitation rates C[].
 void a_matrix_initialize(double a_matrix[TOTAL_N*TOTAL_N])//2009.11.12 Check OK (for C coeff)
 {
-	//a_matrix : a[(J,M)][(J',M')] = a[J(J+1)/2+M][J'(J'+1)/2+M'] := a[(J(J+1)/2+M)*TOTAL_N + J'(J'+1)/2+M']
-	//int J, M, Mp;
-	int i, k, j, i2;   //index for elements in each row, j=J'
-	int J, M;          //index for rows in the matrix
+	//a_matrix : a[(J,M)][(J',M')] = a[J(J+1)/2+M][J'(J'+1)/2+M'] := a_matrix[(J(J+1)/2+M)*TOTAL_N + J'(J'+1)/2+M']
+	// Row index: (J, M)
+	// Column index: (J', M'), J' also denoted as j (lower case)
+	int J, M; // row in the matrix
+	int j;    // J'
+	int i;    // filling position of a_matrix[i]
+	int k;    // upper limit of filling position i
+	int i2;   // position of a_matrix for (J', M') = (J, M)
 	double cjj;
 	
 	//fill the a[0][] row, particle number conservation--------
 	i = 0;
 	j = 0;
 	k = 0;
-	while(j < LEVEL_N)
-	{
-		k += (j+1);
+	while(j < LEVEL_N) {
+		k += (j+1); // Add the number of different |M| given j
 
 		a_matrix[i] = 1.0; //for M'=0
 		i++;
-		while(i < k)
-		{
+		while(i < k) {
 			a_matrix[i] = 2.0; //for M'>0
 			i++;
 		}
@@ -218,20 +226,17 @@ void a_matrix_initialize(double a_matrix[TOTAL_N*TOTAL_N])//2009.11.12 Check OK 
 	}//------------------------------------------------------//
 	//printf("row 1 OK\n");
 
-	//Now the index i,k are at a[1][0]
+	//Now the indices i and k are both at a[1][0]
 
-	//fill collisional excitation rates C[] to a[][]-----------
-	J = 1;
-	while(J < LEVEL_N)//run over all the a_matrix from a[1][] to a[TOTAL_N-1][]
-	{
-		
-		M = 0;
-		while(M < (J+1))
+	//fill collisional excitation rates C[] to a[][]-----------	
+	for (J = 1; J < LEVEL_N; J++) //run over all the a_matrix from a[1][] to a[TOTAL_N-1][]
+	{		
+		for(M = 0; M < (J+1); M++)
 		{
-			//for one row, have the same (J,M)------
-			i2 = i; //move i2 to the first element in this row, a[(J,M)][0]
-			i2 += indexN(J,M); //then move it to point at a[(J,M)][(J,M)]
-			a_matrix[i2] = 0.0;
+			//for one row, have the same (J, M)------
+			// i should be at a_matrix[i] = a[(J,M)][0]
+			i2 = i + indexN(J,M); // Position of a_matrix[i2] = a[(J,M)][(J,M)]
+			a_matrix[i2] = 0.0; // Coefficient for n[(J, M)]
 
 			//run over all the element in this row, from a[(J,M)][0] to a[(J,M)][TOTAL_N-1]
 			j = 0; //j = J', in this loop
@@ -241,13 +246,12 @@ void a_matrix_initialize(double a_matrix[TOTAL_N*TOTAL_N])//2009.11.12 Check OK 
 				k += (j+1);
 				
 				cjj = C[indexJJ(J,j)]; //CJJ'
-				a_matrix[i2] -= cjj;
-				cjj *= ( E[indexJJ(J,j)] / (2*j+1) );
+				a_matrix[i2] -= cjj; //JM -> J'M'
 				
+				cjj *= ( E[indexJJ(J,j)] / (2*j+1) );
 				a_matrix[i] = cjj; //for M'=0
 				i++;
-				while(i < k)
-				{
+				while(i < k) {
 					a_matrix[i] = 2.0 * cjj; //for M'>0
 					i++;
 				}
@@ -257,10 +261,8 @@ void a_matrix_initialize(double a_matrix[TOTAL_N*TOTAL_N])//2009.11.12 Check OK 
 
 			//for J' = J, fill a[][] with zero, unless M = M'
 			k += (j+1);
-			while(i < k)
-			{
-				if(i != i2)
-				{
+			while(i < k) {
+				if(i != i2) {
 					a_matrix[i] = 0.0;
 				}
 				i++;
@@ -278,50 +280,43 @@ void a_matrix_initialize(double a_matrix[TOTAL_N*TOTAL_N])//2009.11.12 Check OK 
 				
 				a_matrix[i] = cjj; //for M'=0
 				i++;
-				while(i < k)
-				{
+				while(i < k) {
 					a_matrix[i] = 2.0 * cjj; //for M'>0
 					i++;
 				}
 				j++;
 			}
 			//------------------------------------//
-			
-			M++;
-		}
-		J++;
+		}		
 	}
 	//-------------------------------------------------------//
 }
 
-void rate_eq_fill(double a_matrix[TOTAL_N*TOTAL_N], double R[LEVEL_N-1][2])
-{
-	//fill the rate equations (a_matrix[]) with the contribution from A[] and R[]
-	//rates function R[] for each level needed to be calculate first before call this function
+void rate_eq_fill(double a_matrix[TOTAL_N*TOTAL_N], const double R[LEVEL_N-1][2]) {
+	// Fill the rate equations (a_matrix[]) with the contribution from A[] and R[]
+	// rates function R[] for each level needed to be calculate first before call this function
 	int i;
-	int J,M;
+	int J, M;
 
-	i = TOTAL_N;//Now the index i,k are at a[1][0]
-	J = 1;
+	i = TOTAL_N; // Start filling a_matrix from a_matrix[1][0]. Skip the row 0.
+	
 	//for J = 1 ~ J = LEVEL_N-1
-	while(J < LEVEL_N)
-	{
+	for(J = 1; J <= LEVEL_N - 1; J++) {
 		M = 0;
 		AR_fill_0( &a_matrix[i], R, J);
 		i += TOTAL_N;
 		M++;
 
-		while(M <= J)//change at 2010/01/19
+		while(M <= J) //change at 2010/01/19
 		{
 			AR_fill_1( &a_matrix[i], R, J, M);
 			i += TOTAL_N;
 			M++;
-		}
-		J++;
+		}		
 	}
 }
 
-void AR_fill_0(double a_row[TOTAL_N], double R[LEVEL_N-1][2], int J) //M = 0
+void AR_fill_0(double a_row[TOTAL_N], const double R[LEVEL_N-1][2], int J) //M = 0
 {
 	double At[6]; //temp. for A coefficients, At[] = {AJM(J-1)M	, AJM(J-1)(M+1), AJM(J-1)(M-1), A(J+1)MJ, A(J+1)(M-1)JM, A(J+1)(M+1)JM}
 	int j;
@@ -349,7 +344,7 @@ void AR_fill_0(double a_row[TOTAL_N], double R[LEVEL_N-1][2], int J) //M = 0
 	}
 }
 
-void AR_fill_1(double a_row[TOTAL_N], double R[LEVEL_N-1][2], int J, int M) //M > 0
+void AR_fill_1(double a_row[TOTAL_N], const double R[LEVEL_N-1][2], int J, int M) //M > 0
 {
 	double At[6]; //temp. for A coefficients, At[] = {AJM(J-1)M	, AJM(J-1)(M+1), AJM(J-1)(M-1), A(J+1)MJ, A(J+1)(M-1)JM, A(J+1)(M+1)JM}
 	int j;
