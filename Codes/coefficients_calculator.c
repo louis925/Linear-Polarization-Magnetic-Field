@@ -2,16 +2,21 @@
 
 #include <stdio.h>
 #include <math.h>
-#include "physics_coeff.h"
+#include "parameters.h"
 #include "physics_function.h"
 
 #include "coefficients_calculator.h"
 
 // Calculate Boltzmann factor E[], frequency v[], background radiation Br_n[] from energy_level[], temperature T
-int coeff_cal(const double *energy_level, double *v, double *E, double *F, double *Br_n, double T)
-{
+// energy_level[LEVEL_N]: Potential energy (cm^-1) at level J (energy_level[J=0] = 0) (in unit of the inverse of wavelength(l), 1/l)
+// v[LEVEL_N - 1]       : Frequency (GHz) for J -> J'=J-1, vJJ' = v[J'], GHz = 10^9 Hz
+// E[TRANS_N]           : Boltzmann factor, exp(-dEJJ'/kT), for energy difference between J and J', dEJJ'. EJJ' = E[(J-1)J/2+J']
+// F[LEVEL_N-1]         : Flux normalization factor, 2h(vJJ')^3/c^2, FJJ' = F[J']
+// Br_n[LEVEL_N-1]      : Normalized cosmic blackbody radiation intensity for J -> J'=J-1, Br_JJ' = Br[J']
+// T                    : Temperature of the cloud (K)
+int coeff_cal(const double *energy_level, double *v, double *E, double *F, double *Br_n, double T) {
 	int i;
-	int j,jp;
+	int j, jp;
 	double x;
 
 #if OUTPUT_E
@@ -23,14 +28,12 @@ int coeff_cal(const double *energy_level, double *v, double *E, double *F, doubl
 
 	// E[] Boltzmann factor ====================================
 	// E = exp(-hv/kT)
-	x = h_CONST/k_CONST*LIGHT_SPEED/T*-100.0;
+	x = h_CONST / k_CONST * LIGHT_SPEED / T * -100.0;
 	i = 0; //index of E[]
 	j = 1; //upper level
-	while(j < LEVEL_N)
-	{
+	while(j < LEVEL_N) {
 		jp = 0; //lower level
-		while(jp < j)
-		{
+		while(jp < j) {
 			E[i] = exp(x*(energy_level[j] - energy_level[jp]));
 			i++;
 			jp++;
@@ -70,7 +73,7 @@ int coeff_cal(const double *energy_level, double *v, double *E, double *F, doubl
 #if USE_E_LEVEL_FOR_FREQUENCY
 	// v[] frequency ====================================
 	// Use energy level data to calculate frequency of radiation [2012.11.17]
-	x = LIGHT_SPEED*100.0/1E9; //the unit of frequency v[] is GHz, GHz = 10^9 Hz
+	x = LIGHT_SPEED * 100.0 / 1E9; //the unit of frequency v[] is GHz, GHz = 10^9 Hz
 	j = 0;
 #if SHOW_A_V
 	printf(" j: frequence\n");
@@ -86,8 +89,8 @@ int coeff_cal(const double *energy_level, double *v, double *E, double *F, doubl
 #endif
 
 	// Br_n[] normalized intensity of the cosmic background radiation ========================
-	// Br_n = 1/(exp(hv/kTb)-1) 
-	// from Planck's law of black-body radiation: B(T,v)= 2hv^3/c^2/(exp(hv/kT)-1)
+	// Br_n = 1 / (exp(hv/kTb) - 1) 
+	// from Planck's law of black-body radiation: B(T,v) = 2hv^3/c^2 / (exp(hv/kT) - 1)
 #if USE_E_LEVEL_FOR_FREQUENCY //[2012.11.17]
 	x = LIGHT_SPEED*100.0*h_CONST/k_CONST/TEMP_B;
 	j = 0;
@@ -138,6 +141,7 @@ int coeff_cal(const double *energy_level, double *v, double *E, double *F, doubl
 	}
 	printf("\n");
 #endif
+	printf("Finished coefficient calculation.\n");
 
 	return 0;
 }

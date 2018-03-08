@@ -1,4 +1,4 @@
-#include "physics_coeff.h"
+#include "parameters.h"
 
 #ifndef _FN_PARAM
 typedef struct _fn_param

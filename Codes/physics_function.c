@@ -9,7 +9,7 @@ NTHU
 
 #include <stdio.h>
 #include <math.h>
-#include "physics_coeff.h"
+#include "parameters.h"
 #include "global_value.h"
 #include "integral.h"
 #include "physics_function.h"
@@ -29,7 +29,7 @@ int indexJJ(int J, int Jp) {
 	return (J*(J-1))/2 + Jp;
 }
 
-// Einstein A coefficient for the transition (J, M)->(J-1, M+dM)
+// Einstein A coefficients for the transition (J, M) -> (J' = J-1, M' = M+dm)
 double A_coeff(int J, int M, int dM) {
 	switch(dM)
 	{
@@ -287,5 +287,13 @@ void tau_array(double TAU, double tau[][2], const double n[TOTAL_N])
 		tau[j][0] = TAU * (k_f_n(n,cos(OBS_ANG),0,j)/k0);
 		tau[j][1] = TAU * (k_f_n(n,cos(OBS_ANG),1,j)/k0);
 #endif
+	}
+}
+
+// Normalized emerge specific intensity, (intensity divided by F = 2hv^3/c^2)
+void I_emerge_n(const double n[], const double tau[][2], double I[][2]) {
+	for (int j = 0; j < (LEVEL_N - 1); j++) {
+		I[j][0] = (source_f_n(n, cos(OBS_ANG), 0, j + 1) - Br_n[j] / 2)*(1 - exp(-1 * tau[j][0]));
+		I[j][1] = (source_f_n(n, cos(OBS_ANG), 1, j + 1) - Br_n[j] / 2)*(1 - exp(-1 * tau[j][1]));
 	}
 }

@@ -14,8 +14,7 @@ NTHU
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <stdio.h>
-#include "physics_coeff.h"
-
+#include "parameters.h"
 #include "LAMDA_Data_Reader.h"
 
 int lamda_data_reader(double *A, double *v, double *C, double *energy_level, double *T)
