@@ -1,7 +1,7 @@
 #ifndef _GLOBAL_VALUE_H_
 #include <gsl/gsl_integration.h>
 extern double A[];            //Einstein coefficients, AJJ' = A[J'] (J-1 = J')
-extern double C[];            //CJ->J' = C[(J-1)J/2+J'], C[] = {C10,C20,C21,C30,C31...}
+extern double C[];            // Collisional excitation rates for J -> J', CJJ' = C[(J-1)J/2+J'], C[] = {C10,C20,C21,C30,C31...}
 extern double E[];            //exp(-hv/kT)
 extern double F[];            //2h(vJJ')^3/c^2, FJJ' = F[J'] (J-1 = J')
 extern double v[];            //frequency (GHz) from J to J'(vJJ'), vJJ' = v[J'] (J-1 = J'), GHz = 10^9 Hz

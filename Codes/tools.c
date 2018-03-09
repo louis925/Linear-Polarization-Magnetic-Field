@@ -11,6 +11,9 @@ void output_a_matrix(const double* a_matrix, const char* a_matrix_filename) {
 	if ((amf = fopen(a_matrix_filename, "w")) == NULL)//Open file for debug a_matrix output
 	{
 		printf("Can not open the file '%s' for debug output\n", a_matrix_filename);
+#ifdef WINDOWS
+		getchar();
+#endif
 	}
 	int i = 0;
 	int j = 0;
@@ -18,7 +21,7 @@ void output_a_matrix(const double* a_matrix, const char* a_matrix_filename) {
 	while (j < TOTAL_N)	{
 		k += TOTAL_N;
 		while (i < k) {
-			fprintf(amf, "%.2e", a_matrix[i]);
+			fprintf(amf, "%.6e", a_matrix[i]);
 			fprintf(amf, ",");
 			i++;
 		}

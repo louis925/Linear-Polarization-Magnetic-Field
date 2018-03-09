@@ -70,21 +70,19 @@ int coeff_cal(const double *energy_level, double *v, double *E, double *F, doubl
 #endif
 
 
-#if USE_E_LEVEL_FOR_FREQUENCY
 	// v[] frequency ====================================
+#if USE_E_LEVEL_FOR_FREQUENCY
 	// Use energy level data to calculate frequency of radiation [2012.11.17]
 	x = LIGHT_SPEED * 100.0 / 1E9; //the unit of frequency v[] is GHz, GHz = 10^9 Hz
-	j = 0;
-#if SHOW_A_V
-	printf(" j: frequence\n");
-#endif
-	while(j < (LEVEL_N-1))
-	{
+	for (j = 0; j < (LEVEL_N - 1); j++) {
 		v[j] = x*(energy_level[j+1] - energy_level[j]);
-#if SHOW_A_V
-		printf("%2d: %.3e\n", j, v[j]);
+	}
 #endif
-		j++;
+
+#if SHOW_A_V
+	printf(" j: frequence (GHz)\n");
+	for (j = 0; j < (LEVEL_N - 1); j++) {
+		printf("%2d: %.3e\n", j, v[j]);
 	}
 #endif
 
@@ -92,39 +90,29 @@ int coeff_cal(const double *energy_level, double *v, double *E, double *F, doubl
 	// Br_n = 1 / (exp(hv/kTb) - 1) 
 	// from Planck's law of black-body radiation: B(T,v) = 2hv^3/c^2 / (exp(hv/kT) - 1)
 #if USE_E_LEVEL_FOR_FREQUENCY //[2012.11.17]
-	x = LIGHT_SPEED*100.0*h_CONST/k_CONST/TEMP_B;
-	j = 0;
-	while(j < (LEVEL_N-1))
-	{
+	x = LIGHT_SPEED * 100.0 * h_CONST / k_CONST / TEMP_B;
+	for (j = 0; j < (LEVEL_N - 1); j++) {
 		Br_n[j] = 1/(exp(x*(energy_level[j+1] - energy_level[j]))-1); //already divided by F = 2hv^3/c^2
-		j++;
 	}
 #else
 	x = h_CONST/k_CONST/TEMP_B*1E9; //the unit of frequency v[] is GHz, GHz = 10^9 Hz
-	j = 0;
-	while(j < (LEVEL_N-1))
-	{
-		Br_n[j] = 1/(exp(x*v[j])-1); //already divided by F = 2hv^3/c^2
-		j++;
+	for (j = 0; j < (LEVEL_N - 1); j++) {
+		Br_n[j] = 1 / (exp(x*v[j]) - 1); //already divided by F = 2hv^3/c^2
 	}
 #endif
 
 #if OUTPUT_BR_N
 	printf("[Debug] Br_n[] output.\n");
-	if( (brf = fopen( BR_N_FILE, "w" )) == NULL )//Open file for debug a_matrix output
-	{
+	if( (brf = fopen( BR_N_FILE, "w" )) == NULL ) {
 		printf( "[Debug] Can not open the file '%s' for debug output\n" , BR_N_FILE);
 	}
 	j = 0;
-	while(j < (LEVEL_N-1))
-	{
+	while(j < (LEVEL_N-1)) {
 		fprintf(brf, "%.5e\n", Br_n[j]);
 		j++;
 	}
-	if(brf)
-	{
-		if( fclose(brf) )
-		{
+	if(brf) {
+		if( fclose(brf) ) {
 			printf( "[Debug] The file '%s' was not closed\n" , BR_N_FILE);
 		}
 	}
@@ -134,8 +122,7 @@ int coeff_cal(const double *energy_level, double *v, double *E, double *F, doubl
 	printf("j: Br_n[]  by level\n");
 	x = h_CONST/k_CONST*LIGHT_SPEED/TEMP_B*100.0;
 	j = 0;
-	while(j < (LEVEL_N - 1))
-	{
+	while(j < (LEVEL_N - 1)) {
 		printf("%d: %.5e %.5e\n", j, Br_n[j], 1/(exp(x*(energy_level[j+1] - energy_level[j]))-1));
 		j++;
 	}

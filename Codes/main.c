@@ -25,7 +25,7 @@ Ref: Cortes (2005) https://arxiv.org/abs/astro-ph/0504258 https://doi.org/10.108
 // Global Variable --------------------
 // for other files(.c .h), please include "global_value.h" to use these variable.
 double A[LEVEL_N-1] = {0.0};          // Einstein coefficients for J -> J'=J-1, AJJ' = A[J']
-double C[TRANS_N] = {0.0};            // Collisional coefficients for J -> J', CJJ' = C[(J-1)J/2+J'], C[] = {C10,C20,C21,C30,C31...}
+double C[TRANS_N] = {0.0};            // Collisional excitation rates for J -> J', CJJ' = C[(J-1)J/2+J'], C[] = {C10,C20,C21,C30,C31...}
 double E[TRANS_N] = {0.0};            // Boltzmann factor, exp(-dEJJ'/kT), for energy difference dE between J and J', EJJ' = E[(J-1)J/2+J']
 double F[LEVEL_N-1] = {0.0};          // Flux normalization factor, 2h(vJJ')^3/c^2, FJJ' = F[J']
 double v[LEVEL_N-1] = {0.0};          // Frequency (GHz) for J -> J'=J-1, vJJ' = v[J'], GHz = 10^9 Hz
@@ -183,6 +183,13 @@ int main()
 
 		printf("%d: %.3e, %3f%%, %.3e, %.3e, %.3e, %.3e\n",
 			j, TAUj, Pt, I[j][0] * h_CONST*v[j] / k_CONST * 1E9, I[j][1] * h_CONST*v[j] / k_CONST * 1E9, Id, v[j]);
+	}
+#endif
+	
+#if TEST_A_INIT
+	if (LEVEL_N == 3 && !test_a_matrix_initialize_3()) {  // Pass on 2018.03.08
+		printf("Test on a_matrix_initialize fail!\n");
+		getchar();
 	}
 #endif
 

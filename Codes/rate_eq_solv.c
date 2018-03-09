@@ -53,10 +53,11 @@ void rate_eq_solve(double n[TOTAL_N], double TAU) {
 	l = 0;
 	do {
 		Rate_f_n_cal(n, TAU, R); // Calculate the R[][] coefficients
-#if 1
+
+#if CUTOFF_R
 		for (int i = 0; i < LEVEL_N - 1; i++) {
-			R[i][0] = max(1e-4, R[i][0]);
-			R[i][1] = max(1e-4, R[i][1]);
+			R[i][0] = max(R_MIN, R[i][0]);
+			R[i][1] = max(R_MIN, R[i][1]);
 		}
 #endif
 			
@@ -78,11 +79,11 @@ void rate_eq_solve(double n[TOTAL_N], double TAU) {
 		rate_eq_fill(a_matrix, R);
 		// ___________________________________________________________________________//
 
-#if 0
+#if 1
 		//check a_matrix[]********
-		if (TAU == 0.01 && l == 0) {
+		if (TAU == TAU_START && l == 0) {
 			printf("[Debug]a_matrix[][] output.\n");
-			output_a_matrix(a_matrix, A_MATRIX_I_FILE);
+			output_a_matrix(a_matrix, "a_matrix_0[].csv");
 		}
 #endif	
 		// _____________________________________________________________________________
@@ -128,6 +129,12 @@ void rate_eq_solve(double n[TOTAL_N], double TAU) {
 	}
 	if (R_sign == 1) { 
 		printf("R[][] constains negative values! Solution may not valid.\n"); 
+#if 1
+		//check a_matrix[]********
+		printf("[Debug]a_matrix[][] output.\n");
+		output_a_matrix(a_matrix, "a_matrix_n[].csv");
+#endif
+		getchar();
 	}
 
 #if SHOW_R
@@ -193,10 +200,10 @@ void a_matrix_initialize(double a_matrix[TOTAL_N*TOTAL_N]) {
 	k = 0;
 	for (j = 0; j < LEVEL_N; j++) {
 		k += (j + 1); // Add the number of different |M| given j
-		a_matrix[i] = 1.0; //for M'=0
+		a_matrix[i] = 1.0 * PC_FACTOR; //for M'=0
 		i++;
 		while (i < k) {
-			a_matrix[i] = 2.0; //for M'>0
+			a_matrix[i] = 2.0 * PC_FACTOR; //for M'>0
 			i++;
 		}
 	}	
@@ -346,5 +353,43 @@ void AR_fill_1(double a_row[TOTAL_N], const double R[LEVEL_N-1][2], int J, int M
 		a_row[j  ] += At[3]*(1 + R[J][0]); //n(J+1,M)
 		a_row[j+1] += At[5]*(1 + R[J][1]); //n(J+1,M+1) //Modified at 2010/01/19
 		a_row[j-1] += At[4]*(1 + R[J][1]); //n(J+1,M-1) //Modified at 2010/01/19
+	}
+}
+
+// Test a_matrix_initialize()
+int test_a_matrix_initialize_3() {
+	double a_matrix[TOTAL_N*TOTAL_N] = { 11., 11., 11., 11., 11., 11., 11., 11., 11.};
+	double C10 = C[indexJJ(1, 0)];
+	double C20 = C[indexJJ(2, 0)];
+	double C21 = C[indexJJ(2, 1)];
+	double E10 = E[indexJJ(1, 0)];
+	double E20 = E[indexJJ(2, 0)];
+	double E21 = E[indexJJ(2, 1)];
+	double a_matrix_ans[TOTAL_N*TOTAL_N] = {
+		1 * PC_FACTOR, 1 * PC_FACTOR, 2 * PC_FACTOR, 1 * PC_FACTOR, 2 * PC_FACTOR, 2 * PC_FACTOR,
+		C10 * E10, -(C10 + 5 * C21*E21 / 3), 0., C21 / 3, 2 * C21 / 3, 2 * C21 / 3,
+		C10 * E10, 0., -(C10 + 5 * C21*E21 / 3), C21 / 3, 2 * C21 / 3, 2 * C21 / 3,
+		C20 * E20, C21 * E21 / 3, 2 * C21 * E21 / 3, -(C20 + C21), 0., 0.,
+		C20 * E20, C21 * E21 / 3, 2 * C21 * E21 / 3, 0., -(C20 + C21), 0.,
+		C20 * E20, C21 * E21 / 3, 2 * C21 * E21 / 3, 0., 0., -(C20 + C21)
+	};
+	double err_a_matrix[TOTAL_N*TOTAL_N] = { 0. };  // Relative error in a_matrix
+	double total_err = 0.;
+	a_matrix_initialize(a_matrix);
+	output_a_matrix(a_matrix, "a_matrix_test_init[].csv");
+	output_a_matrix(a_matrix_ans, "a_matrix_test_init_answ[].csv");
+	for (int i = 0; i < TOTAL_N*TOTAL_N; i++) {
+		err_a_matrix[i] = a_matrix[i] - a_matrix_ans[i];
+		if (err_a_matrix[i] != 0.) {
+			err_a_matrix[i] /= (fabs(a_matrix[i]) + fabs(a_matrix_ans[i]));
+		}
+		total_err += err_a_matrix[i];
+	}
+	output_a_matrix(err_a_matrix, "a_matrix_test_init_error[].csv");
+	if (total_err > 0.01) {
+		return 0;
+	}
+	else {
+		return 1;
 	}
 }

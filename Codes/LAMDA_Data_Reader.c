@@ -1,15 +1,17 @@
 /*
 LAMDA Data Reader
-Read the Einstein coefficients A, Frequency between each level (v), Collisional coefficients C
-     , Energy at each level (energy_level), and temperature T
+Read the Einstein coefficients A, Frequency between each level (v), Collisional coefficients C,
+Energy at each level (energy_level), and temperature T
 from LAMDA datafiles
-reference: http://www.strw.leidenuniv.nl/~moldata/
-           http://www.strw.leidenuniv.nl/~moldata/molformat.html
 
+References:
+Schoier, F.L., van der Tak, F.F.S., van Dishoeck E.F., Black, J.H. 2005, A&A 432, 369-379
+http://doi.org/10.1051/0004-6361:20041729
+http://www.strw.leidenuniv.nl/~moldata/
+http://www.strw.leidenuniv.nl/~moldata/molformat.html
 
-Made by Louis
-NTHU
-2012.11.17
+Louis Yang (Kavli IPMU)
+2018.03.08
 */
 #define _CRT_SECURE_NO_WARNINGS
 
