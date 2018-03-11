@@ -36,11 +36,6 @@ void rate_eq_solve(double n[TOTAL_N], double TAU) {
 	int l;                            // Number of loops
 	int R_sign = 0;                   // Sign of R[][]. 1: R contains negative, 0; all positive
 
-#if 0
-	int i,k; //debug use
-	FILE *amf; //debug use
-#endif
-
 	gsl_permutation *gsl_p;
 	gsl_matrix_view gsl_a_m;
 	gsl_vector_view gsl_b_v;
@@ -359,6 +354,7 @@ void AR_fill_1(double a_row[TOTAL_N], const double R[LEVEL_N-1][2], int J, int M
 }
 
 // Test a_matrix_initialize()
+#if LEVEN_N == 3
 int test_a_matrix_initialize_3() {
 	double a_matrix[TOTAL_N*TOTAL_N] = { 11., 11., 11., 11., 11., 11., 11., 11., 11.};
 	double C10 = C[indexJJ(1, 0)];
@@ -380,14 +376,66 @@ int test_a_matrix_initialize_3() {
 	a_matrix_initialize(a_matrix);
 	output_a_matrix(a_matrix, "a_matrix_test_init[].csv");
 	output_a_matrix(a_matrix_ans, "a_matrix_test_init_answ[].csv");
-	for (int i = 0; i < TOTAL_N*TOTAL_N; i++) {
+	/*for (int i = 0; i < TOTAL_N*TOTAL_N; i++) {
 		err_a_matrix[i] = a_matrix[i] - a_matrix_ans[i];
 		if (err_a_matrix[i] != 0.) {
 			err_a_matrix[i] /= (fabs(a_matrix[i]) + fabs(a_matrix_ans[i]));
 		}
 		total_err += err_a_matrix[i];
-	}
+	}*/
+	total_err = relative_error(a_matrix, a_matrix_ans, TOTAL_N*TOTAL_N, err_a_matrix);
+	printf("Test N=3 a_matrix initialization with error: %.3e\n", total_err);
 	output_a_matrix(err_a_matrix, "a_matrix_test_init_error[].csv");
+	if (total_err > 0.01) {
+		return 0;
+	}
+	else {
+		return 1;
+	}
+}
+#endif
+
+// Test rate_eq_solve with only C[] terms and particle conservation (a_matrix_i)
+// This is not a test on rate_eq_solve() function but a mathematical check of the solution
+int test_solve_a_matrix_i() {
+	double b[TOTAL_N] = { Nt, 0.0 };
+	double n[TOTAL_N] = { 0. };           // Population obtained by solving the a_matrix[]
+	double n_eq[TOTAL_N] = { 0. };        // Thermal equilibrium population given by n_initial_cal()
+	double err_n[TOTAL_N] = { 0. };       // Relative error between n[] and n_eq[]
+	double total_err = 0.;
+	double a_matrix_i[TOTAL_N*TOTAL_N];   // Initial a_matrix[]. We use 1D array to represent 2D matrix
+	int s;
+
+	printf("Test rate_eq_solve with only C[] terms and particle conservation (a_matrix_i)\n");
+	a_matrix_initialize(a_matrix_i);
+#if 0
+	printf("[Debug]a_matrix[][] output.\n");
+	output_a_matrix(a_matrix, "a_matrix_0[].csv");
+#endif
+
+	// Compute n[] by solving a[TOTAL_N][TOTAL_N] x n[TOTAL_N] = b[TOTAL_N] problem
+	// using the LU decomposition method
+	gsl_permutation *gsl_p;
+	gsl_matrix_view gsl_a_m;
+	gsl_vector_view gsl_b_v;
+	gsl_vector_view gsl_n_v;
+	gsl_p = gsl_permutation_alloc(TOTAL_N);
+	gsl_a_m = gsl_matrix_view_array(a_matrix_i, TOTAL_N, TOTAL_N);
+	gsl_b_v = gsl_vector_view_array(b, TOTAL_N);
+	gsl_n_v = gsl_vector_view_array(n, TOTAL_N);
+	gsl_linalg_LU_decomp(&gsl_a_m.matrix, gsl_p, &s);
+	gsl_linalg_LU_solve(&gsl_a_m.matrix, gsl_p, &gsl_b_v.vector, &gsl_n_v.vector);
+	gsl_permutation_free(gsl_p);
+	printf("From solving a_matrix    ");
+	print_n(n);
+
+	n_initial_cal(n_eq, T);
+	printf("From thermal equilibrium ");
+	print_n(n_eq);
+
+	total_err = relative_error(n, n_eq, TOTAL_N, err_n);
+	printf("Total error: %.3e\n", total_err);
+
 	if (total_err > 0.01) {
 		return 0;
 	}

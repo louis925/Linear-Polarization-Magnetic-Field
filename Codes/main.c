@@ -198,6 +198,13 @@ int main()
 	}
 #endif
 
+#if TEST_A_INIT_SOLVE
+	if (!test_solve_a_matrix_i()) {
+		printf("Test on test_solve_a_matrix_i fail!\n");
+		getchar();
+	}
+#endif
+
 	printf("\nInitialization done.\n\n");//*****
 
 // ========================= Initialization done =======================//

@@ -267,30 +267,30 @@ double i_f_r1m(double x, void * params) //for R1, integral of I_pa_n[0]*cos^2+I_
 
 // Construct the optical depth array, tau[][]
 // Given n[], TAU, calculate all tau[][].
-void tau_array(double TAU, double tau[][2], const double n[TOTAL_N]) 
-{
+void tau_array(double TAU, double tau[][2], const double n[TOTAL_N]) {
 	int j;
 	double k0;
 	double cos_TAU = cos(TAU_ANG);
 	double sin_TAU = sin(TAU_ANG);
 	double cos_OBS = cos(OBS_ANG);
 	double sin_OBS = sin(OBS_ANG);
+	double L_factor;  // LVG characteristic scale length factor, L(OBS_ANG) / L(TAU_ANG)
+
+#if TwoD  // use s*s for 2D velocity field, or c*c for 1D velocity field
+	L_factor = (sin_TAU*sin_TAU) / (sin_OBS*sin_OBS);
+#elif OneD
+	L_factor = (cos_TAU*cos_TAU) / (cos_OBS*cos_OBS);
+#elif Mix
+	L_factor = (cos_TAU*cos_TAU + MixRatio * sin_TAU*sin_TAU) / (cos_OBS*cos_OBS + MixRatio * sin_OBS*sin_OBS);
+#else  // Isotropic
+	L_factor = 1.;
+#endif
+
 	k0 = k_f_n(n, cos(TAU_ANG), 0, 0);  // OBS_ANG was replaced by TAU_ANG [2010.01.22]
 	
 	for(j = 0; j < (LEVEL_N - 1); j++) {	
-#if TwoD  // use s*s for 2D velocity field, or c*c for 1D velocity field
-		tau[j][0] = TAU * (k_f_n(n,cos_OBS,0,j)/k0) * (sin_TAU*sin_TAU)/(sin_OBS*sin_OBS);
-		tau[j][1] = TAU * (k_f_n(n,cos_OBS,1,j)/k0) * (sin_TAU*sin_TAU)/(sin_OBS*sin_OBS);
-#elif OneD
-		tau[j][0] = TAU * (k_f_n(n,cos_OBS,0,j)/k0) * (cos_TAU*cos_TAU)/(cos_OBS*cos_OBS);
-		tau[j][1] = TAU * (k_f_n(n,cos_OBS,1,j)/k0) * (cos_TAU*cos_TAU)/(cos_OBS*cos_OBS);
-#elif Mix
-		tau[j][0] = TAU * (k_f_n(n,cos_OBS,0,j)/k0) * ((cos_TAU*cos_TAU + MixRatio*sin_TAU*sin_TAU)/(cos_OBS*cos_OBS + MixRatio*sin_OBS*sin_OBS));
-		tau[j][1] = TAU * (k_f_n(n,cos_OBS,1,j)/k0) * ((cos_TAU*cos_TAU + MixRatio*sin_TAU*sin_TAU)/(cos_OBS*cos_OBS + MixRatio*sin_OBS*sin_OBS));
-#else  // Isotropic
-		tau[j][0] = TAU * (k_f_n(n,cos_OBS,0,j)/k0);
-		tau[j][1] = TAU * (k_f_n(n,cos_OBS,1,j)/k0);
-#endif
+		tau[j][0] = TAU * (k_f_n(n, cos_OBS, 0, j) / k0) * L_factor;
+		tau[j][1] = TAU * (k_f_n(n, cos_OBS, 1, j) / k0) * L_factor;
 	}
 }
 

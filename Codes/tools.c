@@ -83,3 +83,17 @@ void print_I_limit(const double E[TRANS_N], const double Br_n[LEVEL_N - 1], cons
 	}
 	printf("\n");
 }
+
+// Check relative error between array1 and array2 with length len
+// Save relative error in err_array. Return total relative error.
+double relative_error(const double array1[], const double array2[], int len, double err_array[]) {
+	double total_err = 0.;
+	for (int i = 0; i < len; i++) {
+		err_array[i] = array1[i] - array2[i];
+		if (err_array[i] != 0.) {
+			err_array[i] /= (fabs(array1[i]) + fabs(array2[i]));
+		}
+		total_err += err_array[i];
+	}
+	return total_err;
+}
