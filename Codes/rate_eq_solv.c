@@ -74,6 +74,8 @@ void rate_eq_solve(double n[TOTAL_N], double TAU) {
 		for(j = 0; j < TOTAL_N; j++) { n_last[j] = n[j]; }
 		// Copy a_matrix_i[] to a_matrix[]
 		for(j = 0; j < TOTAL_N*TOTAL_N; j++) { a_matrix[j] = a_matrix_i[j];	}
+
+		//print_n(n_last);
 		
 		// Fill rate equations(a_matrix[]) with A[] and R[] ____________________________
 		rate_eq_fill(a_matrix, R);

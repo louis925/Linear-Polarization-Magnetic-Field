@@ -87,7 +87,10 @@ int main()
 	printf("Finished reading data.\n");
 
 	printf("Gas temperature:     %.0f K\n", T);
-	printf("NC:                  %.3e\n", NC);
+	printf("NC:                  %.3e cm^-3\n", NC);
+	printf("C[0]:                %.3e s^-1\n", C[0]);
+	printf("A[0]:                %.3e s^-1\n", A[0]);
+	printf("C/A:                 %lf\n", C[0] / A[0]);
 	printf("Observational angle: %.3f PI\n", OBS_ANG / M_PI);
 	printf("TAU angle:           %.3f PI\n", TAU_ANG / M_PI);
 	printf("Case:                ");
@@ -101,6 +104,8 @@ int main()
 	printf("Isotropic");
 #endif
 	printf("\n");
+	printf("TAU range:           %lf - %lf [%d steps]\n",
+		TAU_START, TAU_START * pow(TAU_INC_RATIO, N_TAU-1), N_TAU);
 
 	// Generate Output file names __________________________________________
 	generate_output_filenames(file_name, file_name_g, &file_name_index, T);

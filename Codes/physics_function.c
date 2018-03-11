@@ -210,14 +210,14 @@ void Rate_f_n_cal(const double n[TOTAL_N], double tau, double R[LEVEL_N-1][2]) {
 double i_f_r0m(double x, void * params) //for R0, integral of I_pa_n[0]*sin^2
 {
 	static double *n;
-	static double c,s;
+	static double c, s;
 	static double tau_d; //tau_d is the tau in this direction(angle) and polariation
 	static int j; //J -> j, J-1 = j = J', change at 2009.11.13
 	static double k0;
 	n = ((Fn_Param *) params)->n;
 	j = ((Fn_Param *) params)->j;
 	tau_d = ((Fn_Param *) params)->tau;
-	k0 =  ((Fn_Param *) params)->k0;
+	k0 = ((Fn_Param *)params)->k0;
 	c = x*x; //x = cos
 	s = fabs(1-c);
 
@@ -228,9 +228,9 @@ double i_f_r0m(double x, void * params) //for R0, integral of I_pa_n[0]*sin^2
 #elif Mix
 	tau_d = tau_d * (k_f_n(n,x,0,j)/k0) * ((cos(TAU_ANG)*cos(TAU_ANG) + MixRatio*sin(TAU_ANG)*sin(TAU_ANG))/ (c + MixRatio*s));
 #else //Isotropic
-	tau_d = tau_d * (k_f_n(n,x,0,j)/k0);
+	tau_d = tau_d * (k_f_n(n, x, 0, j) / k0);
 #endif
-	return s * I_pa_n(n,x,0,tau_d,j);
+	return s * I_pa_n(n, x, 0, tau_d, j);
 }
 
 //[2010.01.22] OBS_ANG was replaced by TAU_ANG
@@ -271,21 +271,25 @@ void tau_array(double TAU, double tau[][2], const double n[TOTAL_N])
 {
 	int j;
 	double k0;
+	double cos_TAU = cos(TAU_ANG);
+	double sin_TAU = sin(TAU_ANG);
+	double cos_OBS = cos(OBS_ANG);
+	double sin_OBS = sin(OBS_ANG);
 	k0 = k_f_n(n, cos(TAU_ANG), 0, 0);  // OBS_ANG was replaced by TAU_ANG [2010.01.22]
 	
 	for(j = 0; j < (LEVEL_N - 1); j++) {	
 #if TwoD  // use s*s for 2D velocity field, or c*c for 1D velocity field
-		tau[j][0] = TAU * (k_f_n(n,cos(OBS_ANG),0,j)/k0) * (sin(TAU_ANG)*sin(TAU_ANG))/(sin(OBS_ANG)*sin(OBS_ANG));
-		tau[j][1] = TAU * (k_f_n(n,cos(OBS_ANG),1,j)/k0) * (sin(TAU_ANG)*sin(TAU_ANG))/(sin(OBS_ANG)*sin(OBS_ANG));
+		tau[j][0] = TAU * (k_f_n(n,cos_OBS,0,j)/k0) * (sin_TAU*sin_TAU)/(sin_OBS*sin_OBS);
+		tau[j][1] = TAU * (k_f_n(n,cos_OBS,1,j)/k0) * (sin_TAU*sin_TAU)/(sin_OBS*sin_OBS);
 #elif OneD
-		tau[j][0] = TAU * (k_f_n(n,cos(OBS_ANG),0,j)/k0) * (cos(TAU_ANG)*cos(TAU_ANG))/(cos(OBS_ANG)*cos(OBS_ANG));
-		tau[j][1] = TAU * (k_f_n(n,cos(OBS_ANG),1,j)/k0) * (cos(TAU_ANG)*cos(TAU_ANG))/(cos(OBS_ANG)*cos(OBS_ANG));
+		tau[j][0] = TAU * (k_f_n(n,cos_OBS,0,j)/k0) * (cos_TAU*cos_TAU)/(cos_OBS*cos_OBS);
+		tau[j][1] = TAU * (k_f_n(n,cos_OBS,1,j)/k0) * (cos_TAU*cos_TAU)/(cos_OBS*cos_OBS);
 #elif Mix
-		tau[j][0] = TAU * (k_f_n(n,cos(OBS_ANG),0,j)/k0) * ((cos(TAU_ANG)*cos(TAU_ANG) + MixRatio*sin(TAU_ANG)*sin(TAU_ANG))/(cos(OBS_ANG)*cos(OBS_ANG) + MixRatio*sin(OBS_ANG)*sin(OBS_ANG)));
-		tau[j][1] = TAU * (k_f_n(n,cos(OBS_ANG),1,j)/k0) * ((cos(TAU_ANG)*cos(TAU_ANG) + MixRatio*sin(TAU_ANG)*sin(TAU_ANG))/(cos(OBS_ANG)*cos(OBS_ANG) + MixRatio*sin(OBS_ANG)*sin(OBS_ANG)));
+		tau[j][0] = TAU * (k_f_n(n,cos_OBS,0,j)/k0) * ((cos_TAU*cos_TAU + MixRatio*sin_TAU*sin_TAU)/(cos_OBS*cos_OBS + MixRatio*sin_OBS*sin_OBS));
+		tau[j][1] = TAU * (k_f_n(n,cos_OBS,1,j)/k0) * ((cos_TAU*cos_TAU + MixRatio*sin_TAU*sin_TAU)/(cos_OBS*cos_OBS + MixRatio*sin_OBS*sin_OBS));
 #else  // Isotropic
-		tau[j][0] = TAU * (k_f_n(n,cos(OBS_ANG),0,j)/k0);
-		tau[j][1] = TAU * (k_f_n(n,cos(OBS_ANG),1,j)/k0);
+		tau[j][0] = TAU * (k_f_n(n,cos_OBS,0,j)/k0);
+		tau[j][1] = TAU * (k_f_n(n,cos_OBS,1,j)/k0);
 #endif
 	}
 }

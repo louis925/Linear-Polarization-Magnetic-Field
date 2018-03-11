@@ -22,10 +22,10 @@
 #define TOTAL_N ((LEVEL_N+1)*LEVEL_N)/2 //number of sublevels (size of n[])
 #define TRANS_N ((LEVEL_N-1)*LEVEL_N)/2 //total transition number for different J (ex: size of C[])
 
-#define PC_FACTOR 1E-6              // Particle number conservation factor
+#define PC_FACTOR 1.              // Particle number conservation factor 1E-6
 
-//#define Nt ((LEVEL_N+1)*LEVEL_N)/2    //total number = n[0] + 2*n[1] + n[2] +..., It will not change the result.
-#define Nt PC_FACTOR*LEVEL_N*LEVEL_N            //total number = n[0] + n[1] + 2*n[2] +..., It will not change the result.
+#define Nt PC_FACTOR*((LEVEL_N+1)*LEVEL_N)/2    //total number = n[0] + 2*n[1] + n[2] +..., It will not change the result.
+//#define Nt PC_FACTOR*LEVEL_N*LEVEL_N            //total number = n[0] + n[1] + 2*n[2] +..., It will not change the result.
 //Number density of collisional partner (cm^-3):
 //#define NC 2.1827273E+03            //co 10,30K E3
 //#define NC 2.5725E3                 //co.green 10K E3
@@ -36,7 +36,7 @@
 //#define NC 4.4188406E+04            //sio 30K E4
 //#define NC 5.64629630E6             //sio 100K E4
 //#define NC 6.62826087E4             //sio 500K E4
-#define NC 2E3
+#define NC 3E3
                                      
 //Velocity Gradient Model Select
 #define OneD 0						//cos^2
@@ -106,7 +106,7 @@
 #define SHOW_R 1
 #define SHOW_N 1  // Show n[] at each TAU step
 #define CUTOFF_R 0  // Set a minimum value for R[][]
-#define R_MIN 1e-4
+#define R_MIN 0.
 #define TEST_A_INIT 1                 // Test initialization of a_matrix for LEVEL_N == 3
 //debug use option-----------------------------//
 
