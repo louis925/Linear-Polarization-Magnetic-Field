@@ -20,3 +20,6 @@ void print_I_limit(const double E[TRANS_N], const double Br_n[LEVEL_N - 1], cons
 // Check relative error between array1 and array2 with length len
 // Save relative error in err_array. Return total relative error.
 double relative_error(const double array1[], const double array2[], int len, double err_array[]);
+
+// Pause for windows
+void pause();

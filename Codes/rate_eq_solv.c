@@ -131,7 +131,7 @@ void rate_eq_solve(double n[TOTAL_N], double TAU) {
 		printf("[Debug]a_matrix[][] output.\n");
 		output_a_matrix(a_matrix, "a_matrix_n[].csv");
 #endif
-		getchar();
+		pause();
 	}
 
 #if SHOW_R
@@ -386,11 +386,14 @@ int test_a_matrix_initialize_3() {
 	total_err = relative_error(a_matrix, a_matrix_ans, TOTAL_N*TOTAL_N, err_a_matrix);
 	printf("Test N=3 a_matrix initialization with error: %.3e\n", total_err);
 	output_a_matrix(err_a_matrix, "a_matrix_test_init_error[].csv");
-	if (total_err > 0.01) {
-		return 0;
+	if (total_err < 0.01) {
+		printf("Test on a_matrix_initialize pass.\n");
+		return 1;  // Pass
 	}
 	else {
-		return 1;
+		printf("Test on a_matrix_initialize fail!\n");
+		pause();
+		return 0;  // Fail
 	}
 }
 #endif
@@ -436,10 +439,13 @@ int test_solve_a_matrix_i() {
 	total_err = relative_error(n, n_eq, TOTAL_N, err_n);
 	printf("Total error: %.3e\n", total_err);
 
-	if (total_err > 0.01) {
-		return 0;
-	}
+	if (total_err < 0.01) {
+		printf("Test on test_solve_a_matrix_i pass.\n");
+		return 1;  // Pass
+	} 
 	else {
-		return 1;
+		printf("Test on test_solve_a_matrix_i fail!\n");
+		pause();
+		return 0;  // Fail
 	}
 }

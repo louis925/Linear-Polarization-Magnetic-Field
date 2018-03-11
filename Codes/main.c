@@ -79,9 +79,7 @@ int main()
 	if(lamda_data_reader(A, v, C, energy_level, &T)) //read A C v from file 'co.win.dat'
 	{
 		printf("Cannot read coefficients data.\n");
-#ifdef WINDOWS
-		getchar();
-#endif // WINDOWS
+		pause();
 		return 0;
 	}
 	printf("Finished reading data.\n");
@@ -113,18 +111,14 @@ int main()
 	// Open output files ______________________________________________
 	if ((fw = fopen(file_name, "w")) == NULL) {
 		printf("Cannot open the file %s\n", file_name);
-#ifdef WINDOWS
-		getchar();
-#endif // WINDOWS
+		pause();
 		return 0;
 	}
 #if GNUPLOT_OUTPUT
 	//open GNUPLOT output file
 	if ((fwg = fopen(file_name_g, "w")) == NULL) {
 		printf("Cannot open the file %s\n", file_name_g);
-#ifdef WINDOWS
-		getchar();
-#endif // WINDOWS
+		pause();
 		return 0;
 	}
 #endif	
@@ -192,17 +186,13 @@ int main()
 #endif
 	
 #if TEST_A_INIT
-	if (LEVEL_N == 3 && !test_a_matrix_initialize_3()) {  // Pass on 2018.03.08
-		printf("Test on a_matrix_initialize fail!\n");
-		getchar();
-	}
+#if LEVEL_N == 3
+	test_a_matrix_initialize_3();  // Pass on 2018.03.08
+#endif
 #endif
 
 #if TEST_A_INIT_SOLVE
-	if (!test_solve_a_matrix_i()) {
-		printf("Test on test_solve_a_matrix_i fail!\n");
-		getchar();
-	}
+	test_solve_a_matrix_i();  // Pass on 2018.03.11
 #endif
 
 	printf("\nInitialization done.\n\n");//*****
@@ -462,9 +452,7 @@ int main()
 	// Generate GNUPLOT .dem file -------//
 	
 	printf("Finished calculation!\n");
-#ifdef WINDOWS
-	getchar();
-#endif // WINDOWS
+	pause();
 	return 0;
 }
 

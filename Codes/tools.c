@@ -11,9 +11,7 @@ void output_a_matrix(const double* a_matrix, const char* a_matrix_filename) {
 	if ((amf = fopen(a_matrix_filename, "w")) == NULL)//Open file for debug a_matrix output
 	{
 		printf("Can not open the file '%s' for debug output\n", a_matrix_filename);
-#ifdef WINDOWS
-		getchar();
-#endif
+		pause();
 	}
 	int i = 0;
 	int j = 0;
@@ -96,4 +94,12 @@ double relative_error(const double array1[], const double array2[], int len, dou
 		total_err += err_array[i];
 	}
 	return total_err;
+}
+
+// Pause
+void pause() {
+#ifdef WINDOWS
+	getchar();
+#endif
+	return;
 }

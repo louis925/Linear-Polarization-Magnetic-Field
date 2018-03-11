@@ -8,6 +8,7 @@ GSL Integration Example: http://www.gnu.org/software/gsl/manual/html_node/Numeri
 #include "global_value.h"
 #include "integral.h"
 #include "parameters.h"
+#include "tools.h"
 
 void my_gsl_error(const char * reason, const char * file, int line, int gsl_errno)
 {
@@ -16,9 +17,7 @@ void my_gsl_error(const char * reason, const char * file, int line, int gsl_errn
 	fflush(stdout);
 	//fprintf(stderr, "Default GSL error handler invoked.\n");
 	//fflush(stderr);
-#ifdef WINDOWS
-	getchar();
-#endif // WINDOWS
+	pause();
 	//abort();
 }
 

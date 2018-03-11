@@ -18,7 +18,7 @@
 #define USE_E_LEVEL_FOR_FREQUENCY 1   //Use energy level data to calculate frequency of radiation
 
 //Number of levels
-#define LEVEL_N 2                    //total level number (ex: 2:J=0 ~ 1) // Before 8
+#define LEVEL_N 3                    //total level number (ex: 2:J=0 ~ 1) // Before 8
 #define TOTAL_N ((LEVEL_N+1)*LEVEL_N)/2 //number of sublevels (size of n[])
 #define TRANS_N ((LEVEL_N-1)*LEVEL_N)/2 //total transition number for different J (ex: size of C[])
 
@@ -41,8 +41,8 @@
 //Velocity Gradient Model Select
 #define OneD 0						//cos^2
 #define TwoD 0	                    //sin^2
-#define Isotropic 0 		        //1, If none of all are chose, Isotropic will be default.
-#define Mix 1                       //Mix of OneD and TwoD:
+#define Isotropic 1 		        //1, If none of all are chose, Isotropic will be default.
+#define Mix 0                       //Mix of OneD and TwoD:
 #define MixRatio 0.1	            //MixRatio*sin^2 + cos^2
 #if OneD
 	#define OBS_ANG 0.49167*M_PI         //Observation angle (2D default: M_PI/2, 1D default: 0.4*M_PI)
@@ -107,11 +107,7 @@
 #define SHOW_N 1  // Show n[] at each TAU step
 #define CUTOFF_R 0  // Set a minimum value for R[][]
 #define R_MIN 0.
-#if LEVEL_N == 3
-	#define TEST_A_INIT 1                 // Test initialization of a_matrix for LEVEL_N == 3
-#else
-	#define TEST_A_INIT 0
-#endif
+#define TEST_A_INIT 1                 // Test initialization of a_matrix for LEVEL_N == 3
 #define TEST_A_INIT_SOLVE 1           // Test rate_eq_solve with only C[] terms and particle conservation (a_matrix_i)
 //debug use option-----------------------------//
 

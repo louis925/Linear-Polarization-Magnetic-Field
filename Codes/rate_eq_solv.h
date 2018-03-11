@@ -12,7 +12,9 @@ void n_initial_cal(double n[TOTAL_N], double t);
 void a_matrix_initialize(double a_matrix[TOTAL_N*TOTAL_N]);//2009.11.12 Check OK (for C coeff)
 
 // Test a_matrix_initialize() for LEVEL_N = 3
+#if LEVEN_N == 3
 int test_a_matrix_initialize_3();
+#endif
 
 // Test rate_eq_solve with only C[] terms and particle conservation (a_matrix_i)
 // This is not a test on rate_eq_solve() function but a mathematical check of the solution
