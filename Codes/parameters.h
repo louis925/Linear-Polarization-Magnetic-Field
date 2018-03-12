@@ -109,6 +109,7 @@
 #define R_MIN 0.
 #define TEST_A_INIT 1                 // Test initialization of a_matrix for LEVEL_N == 3
 #define TEST_A_INIT_SOLVE 1           // Test rate_eq_solve with only C[] terms and particle conservation (a_matrix_i)
+#define TEST_RATE_EQ_FILL 1
 //debug use option-----------------------------//
 
 //for Visual Stdio 2005 Compiler

@@ -132,14 +132,16 @@ int main()
 	output_a_matrix(a_matrix_i, A_MATRIX_I_FILE);
 #endif
 	
+	printf("\n");
 
 	// Initialize population n[] ___________________________________________
 	n_initial_cal(n, TEMP_B);
 	//n_initial_cal(n, T);
 
 #if SHOW_NI
-	printf("\nInitial n[]:\n");
+	printf("Initial n[]:\n");
 	print_nv(n);
+	printf("\n");
 #endif
 
 #if SHOW_NF
@@ -149,25 +151,26 @@ int main()
 #endif
 
 #if SHOW_E
-	printf("\n");
 	print_E(E);
+	printf("\n");
 #endif
 
 #if SHOW_I_LIMIT
-	printf("\n");
 	print_I_limit(E, Br_n, v);
+	printf("\n");
 #endif
 	
 #ifdef SHOW_S_INIT
-	printf("\nInitial source functions:\n");
+	printf("Initial source functions:\n");
 	TAU = TAU_START; //set TAU to started tau
 	tau_array(TAU, tau, n); // Calculate tau[] for each levels along the line of sight
 	print_source_f(n, Br_n, tau);
+	printf("\n");
 #endif	
 
 #ifdef SHOW_I_INIT
 	// Check I_excess from initial n[]
-	printf("\nInitial intensity:\n");
+	printf("Initial intensity:\n");
 	TAU = TAU_START; //set TAU to started tau
 	tau_array(TAU, tau, n); // Calculate tau[] for each levels along the line of sight
 	I_emerge_n(n, tau, I);  // Calculate the emitted Intensities
@@ -183,19 +186,21 @@ int main()
 		printf("%d: %.3e, %3f%%, %.3e, %.3e, %.3e, %.3e\n",
 			j, TAUj, Pt, I[j][0] * h_CONST*v[j] / k_CONST * 1E9, I[j][1] * h_CONST*v[j] / k_CONST * 1E9, Id, v[j]);
 	}
+	printf("\n");
 #endif
 	
-#if TEST_A_INIT
-#if LEVEL_N == 3
+#if TEST_A_INIT && LEVEL_N == 3
 	test_a_matrix_initialize_3();  // Pass on 2018.03.08
-#endif
 #endif
 
 #if TEST_A_INIT_SOLVE
 	test_solve_a_matrix_i();  // Pass on 2018.03.11
 #endif
 
-	printf("\nInitialization done.\n\n");//*****
+#if TEST_RATE_EQ_FILL && LEVEL_N == 3
+	test_rate_eq_fill_3();
+#endif
+	printf("========== Initialization done. ==========\n\n");//*****
 
 // ========================= Initialization done =======================//
 
