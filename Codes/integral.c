@@ -32,18 +32,24 @@ double integral(double (* f)(double x, void * params), Fn_Param *params, double 
 	F.function = f;
 	F.params = params;
 	
-	gsl_set_error_handler(&my_gsl_error);  // Modified GSL error handler so that it doesn't disappear when it encounter numerical error.
-	status = gsl_integration_qags (&F, 0, 1, EpsAbs, EpsRel, Gsl_Integ_Space, w, &result, error); //Integrate from 0 to 1
+	// Modify the GSL error handler so that the program doesn't crash when it encounters numerical error.
+	gsl_set_error_handler(&my_gsl_error);
+
+	// Integrate from 0 to 1
+#if GSL_INTEGRAL_QNG
+	status = gsl_integration_qng(&F, 0, 1, EpsAbs, EpsRel, &result, error, intervals);	
+#else
+	status = gsl_integration_qags (&F, 0, 1, EpsAbs, EpsRel, Gsl_Integ_Space, w, &result, error); 
+	//printf("%d ", w->size);
+	*intervals = w->size;
+#endif
 
 	if (status == 21) {
 		printf("\nIntegrand: ");
-		for (int j = 0; j < 20; j++) {
+		for (int j = 0; j <= 20; j++) {
 			printf("%.3e ", f(j/20., params));
 		}
 	}
-
-	//printf("%d ", w->size);
-	*intervals = w->size;
 
 	return result*2;
 }

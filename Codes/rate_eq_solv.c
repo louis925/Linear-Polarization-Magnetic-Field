@@ -18,20 +18,26 @@ NTHU
 
 #include "rate_eq_solv.h"
 
-// Fill a_matrix with A[] and R[], call AR_fill_0 and _1
+// Fill the transition rate matrix with coefficients from spontaneous emission (Einstein A), 
+// stimulated emission, and absorption (A*R).
+// Fill a_matrix[] with A_coeff and R[][]. Call AR_fill_0() and AR_fill_1()
 void rate_eq_fill(double a_matrix[TOTAL_N*TOTAL_N], const double R[LEVEL_N-1][2]); 
 
-// Fill a_matrix with A[] and R[], for M = 0
+// Fill one row of a_matrix[] with A_coeff and R[][], for M = 0
 void AR_fill_0(double a_row[TOTAL_N], const double R[LEVEL_N-1][2], int J);
 
-// Fill a_matrix with A[] and R[], for M > 0
+// Fill one row of a_matrix[] with A_coeff and R[][], for M > 0
 void AR_fill_1(double a_row[TOTAL_N], const double R[LEVEL_N-1][2], int J, int M);
+
+// Scale a_matrix[] row by row except the first row
+void scale_a_matrix(double a_matrix[TOTAL_N*TOTAL_N]);
 
 void rate_eq_solve(double n[TOTAL_N], double TAU) {
 	double b[TOTAL_N] = {Nt, 0.0};  
 	double n_last[TOTAL_N];           // Result n[] in last step for comparing to next step
-	double R[LEVEL_N-1][2] = {{0.0}}; // Results of Rate_f_n()
-	int converge;                     // Weither n[] converge
+	double R[LEVEL_N-1][2] = {{0.0}}; // Stimulated emission coefficient factors (dimensionless)
+									  // Stimulated transition rate is given by A*R
+	int converge;                     // Whether n[] converges
 	int s, j;
 	int l;                            // Number of loops
 	int R_sign = 0;                   // Sign of R[][]. 1: R contains negative, 0; all positive
@@ -47,7 +53,14 @@ void rate_eq_solve(double n[TOTAL_N], double TAU) {
 
 	l = 0;
 	do {
-		Rate_f_n_cal(n, TAU, R); // Calculate the R[][] coefficients
+		R_cal(n, TAU, R); // Calculate stimulated emission coefficient factor, R[][]
+
+#if DEBUG_ZERO_R  // Set R[][] to zero for debugging
+		for (int i = 0; i < LEVEL_N - 1; i++) {
+			R[i][0] = 0.;
+			R[i][1] = 0.;
+		}
+#endif
 
 #if CUTOFF_R
 		for (int i = 0; i < LEVEL_N - 1; i++) {
@@ -55,7 +68,14 @@ void rate_eq_solve(double n[TOTAL_N], double TAU) {
 			R[i][1] = max(R_MIN, R[i][1]);
 		}
 #endif
-			
+
+#if ABS_R
+		for (int i = 0; i < LEVEL_N - 1; i++) {
+			R[i][0] = fabs(R[i][0]);  // Prevent negative intensity (for population inversion case)
+			R[i][1] = fabs(R[i][1]);			
+		}
+#endif
+
 #if SHOW_R
 		//print R[][] for debug*****
 		if(l == 0) {
@@ -70,16 +90,18 @@ void rate_eq_solve(double n[TOTAL_N], double TAU) {
 		// Copy a_matrix_i[] to a_matrix[]
 		for(j = 0; j < TOTAL_N*TOTAL_N; j++) { a_matrix[j] = a_matrix_i[j];	}
 
-		//print_n(n_last);
-		
 		// Fill rate equations(a_matrix[]) with A[] and R[] ____________________________
 		rate_eq_fill(a_matrix, R);
 		// ___________________________________________________________________________//
 
+
+#if SCALE_A
+		scale_a_matrix(a_matrix); // Scale a_matrix except the first row
+#endif
 #if 1
 		//check a_matrix[]********
 		if (TAU == TAU_START && l == 0) {
-			printf("[Debug]a_matrix[][] output.\n");
+			printf("[Debug] a_matrix[][] output.\n");
 			output_a_matrix(a_matrix, "a_matrix_0[].csv");
 		}
 #endif	
@@ -128,7 +150,7 @@ void rate_eq_solve(double n[TOTAL_N], double TAU) {
 		printf("R[][] constains negative values! Solution may not valid.\n"); 
 #if 1
 		//check a_matrix[]********
-		printf("[Debug]a_matrix[][] output.\n");
+		printf("[Debug] a_matrix[][] output.\n");
 		output_a_matrix(a_matrix, "a_matrix_n[].csv");
 #endif
 		pause();
@@ -140,6 +162,11 @@ void rate_eq_solve(double n[TOTAL_N], double TAU) {
 	printf("\n");
 #endif	
 
+#if OUTPUT_I_R
+	if (TAU == TAU_START) {
+		output_integrand_R(n, TAU, 200, "i_R[][].csv");
+	}
+#endif
 #if 0
 	//print n[] for debug*****
 	//printf("%d:\n", i);
@@ -353,6 +380,28 @@ void AR_fill_1(double a_row[TOTAL_N], const double R[LEVEL_N-1][2], int J, int M
 	}
 }
 
+// Scale a_row[] array according to the maximum absolute value in the row.
+// After scaling, maximum absolute value is 1.
+// Input a_row[TOTAL_N]. Modify inplace.
+void scale_a_row(double a_row[TOTAL_N]) {
+	double a_max = 0.; // maximum absolute value in the row
+	for (int i = 0; i < TOTAL_N; i++) {
+		if (fabs(a_row[i]) > a_max) { a_max = fabs(a_row[i]); }
+	}
+	if (a_max != 0.) {
+		for (int i = 0; i < TOTAL_N; i++) {
+			a_row[i] /= a_max;
+		}
+	}
+}
+
+// Scale a_matrix[] row by row except the first row
+void scale_a_matrix(double a_matrix[TOTAL_N*TOTAL_N]) {
+	for (int i = 1; i < TOTAL_N; i++) {
+		scale_a_row(&a_matrix[i * TOTAL_N]);
+	}
+}
+
 #if LEVEL_N == 3
 // Test a_matrix_initialize() for LEVEL_N = 3
 int test_a_matrix_initialize_3() {
@@ -395,6 +444,7 @@ int test_a_matrix_initialize_3() {
 }
 
 // Test rate_eq_fill() for LEVEL_N = 3
+// Test filling of A[] terms to a_matrix[] without radiation
 int test_rate_eq_fill_3() {
 	double a_matrix[TOTAL_N*TOTAL_N] = { 0. }; // For filling answer
 	double R[LEVEL_N - 1][2] = { { 0., 0. },{ 0., 0. } };  // No radiation

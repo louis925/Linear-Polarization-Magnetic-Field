@@ -88,7 +88,7 @@ double relative_error(const double array1[], const double array2[], int len, dou
 	double total_err = 0.;
 	for (int i = 0; i < len; i++) {
 		err_array[i] = array1[i] - array2[i];
-		if (err_array[i] != 0.) {
+		if ((fabs(array1[i]) + fabs(array2[i])) != 0.) {
 			err_array[i] /= (fabs(array1[i]) + fabs(array2[i]));
 		}
 		total_err += err_array[i];
@@ -96,7 +96,7 @@ double relative_error(const double array1[], const double array2[], int len, dou
 	return total_err;
 }
 
-// Pause
+// Pause for Windows
 void pause() {
 #ifdef WINDOWS
 	getchar();

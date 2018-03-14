@@ -1,14 +1,15 @@
 /*
-2009 NTHU Astrophysics Summer Project
+2009 NTHU Astrophysics Summer Project-
+Linear Polarization from Molecular Cloud in Magnetic Field with Large Velocity Gradient Approximation
 
-Made by Louis Yang (Kavli IPMU)
-Last update 2018.02.28 by Louis Yang
+First created by Louis Yang (NTHU) on 2009
+Last update by Louis Yang (Kavli IPMU) on 2018.03.14
 
 The main purpose of this code is to reproduce the result of Deguchi and Watson (1984) paper and Cortes (2005).
 Ref: Cortes (2005) https://arxiv.org/abs/astro-ph/0504258 https://doi.org/10.1086/430815
 */
 
-#define _CRT_SECURE_NO_WARNINGS 1
+#define _CRT_SECURE_NO_WARNINGS    //Disable the SECURE WARNINGS for fopen()
 
 #include <stdio.h>
 #include <math.h>
@@ -160,7 +161,7 @@ int main()
 	printf("\n");
 #endif
 	
-#ifdef SHOW_S_INIT
+#if SHOW_S_INIT
 	printf("Initial source functions:\n");
 	TAU = TAU_START; //set TAU to started tau
 	tau_array(TAU, tau, n); // Calculate tau[] for each levels along the line of sight
@@ -168,7 +169,7 @@ int main()
 	printf("\n");
 #endif	
 
-#ifdef SHOW_I_INIT
+#if SHOW_I_INIT
 	// Check I_excess from initial n[]
 	printf("Initial intensity:\n");
 	TAU = TAU_START; //set TAU to started tau
@@ -198,7 +199,15 @@ int main()
 #endif
 
 #if TEST_RATE_EQ_FILL && LEVEL_N == 3
-	test_rate_eq_fill_3();
+	test_rate_eq_fill_3();  // Pass on 2018.03.12
+#endif
+
+#if TEST_S_ISO
+	test_source_f_n_iso();  // Pass on 2018.03.14
+#endif
+
+#if TEST_S_3 && LEVEL_N == 3
+	test_source_f_n_3();  // Pass on 2018.03.14
 #endif
 	printf("========== Initialization done. ==========\n\n");//*****
 
@@ -212,7 +221,7 @@ int main()
 	for (i = 0; i < TOTAL_N; i++) {
 		fprintf(fw, "n[%d],", i);
 	}
-	fprintf(fw, "cal_time, loop_count, interval_count, 0 = parallel; 1 = perpendicular\n");
+	fprintf(fw, "cal_time (%.0es), loop_count, interval_count, 0 = parallel; 1 = perpendicular\n", 1./CLOCKS_PER_SEC);
 
 	
 // ==============================================================================
@@ -426,6 +435,7 @@ int main()
 	if( (fwg = fopen( file_name, "w" )) == NULL )//Open file for write in
 	{
 		printf( "Can not open the file '%s'\n" , file_name);
+		pause();
 		return 0;
 	}
 	fprintf(fwg, "set logscale x\n");
