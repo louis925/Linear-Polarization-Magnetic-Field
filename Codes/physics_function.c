@@ -114,7 +114,7 @@ double source_f_n(const double n[TOTAL_N], double angle, int q, int J)
 // Normalized absorption efficients
 double k_f_n(const double n[TOTAL_N], double angle, int q, int j)
 {//J -> j, J-1 = j = J', change at 2009.11.13
-	double c,s;
+	double cos2, sin2;
 	int M;
 	int J = j+1;
 	int A1_n, A0_n;
@@ -141,9 +141,8 @@ double k_f_n(const double n[TOTAL_N], double angle, int q, int j)
 		//return 2 * sum / (v[j] * v[j]) / (2 * J - 1) / J * A[j]; // test, original eq in DW's paper, wrong(?)
 		break;
 	case 0: // Parallel
-		c = angle;        // angle = angle between magnetic field and line of sight
-		c *= c;           // c = cos^2
-		s = fabs(1-c);
+		cos2 = angle * angle;        // angle = cos(angle between magnetic field and line of sight)
+		sin2 = fabs(1 - cos2);
 		
 		M = -J;
 		sum = 0;
@@ -153,7 +152,7 @@ double k_f_n(const double n[TOTAL_N], double angle, int q, int j)
 		while(M < J)
 		{
 			A0_n = J*J - M*M;
-			sum += ((n[indexN(J-1,M+1)]-n[indexN(J,M)])*A1_n*c + (n[indexN(J-1, M)]-n[indexN(J,M)])*A0_n*s);
+			sum += ((n[indexN(J-1,M+1)]-n[indexN(J,M)])*A1_n*cos2 + (n[indexN(J-1, M)]-n[indexN(J,M)])*A0_n*sin2);
 			
 			A1_n -= dA;
 			dA--;
@@ -228,7 +227,7 @@ void output_integrand_R(const double n[TOTAL_N], double tau, int n_sample, const
 	
 	fprintf(of, "cos, ");
 	for (int j = 0; j < (LEVEL_N - 1); j++) { //j = 0 ~ LEVEL_N-2
-		fprintf(of, "i_R[%d][0], i_R[%d][1], ", j);
+		fprintf(of, "i_R[%d][0], i_R[%d][1], ", j, j);
 	}
 	fprintf(of, "\n");
 	for (int i = 0; i < n_sample; i++) {
@@ -250,61 +249,62 @@ void output_integrand_R(const double n[TOTAL_N], double tau, int n_sample, const
 }
 
 // Integrand of R_JJ' for dM = 0 (R[J'][0]) without the factor 3/2
-double i_f_r0m(double x, void * params) //for R0, integral of I_pa_n[0]*sin^2
-{
-	static double *n;
-	static double cos2, sin2;
-	static double tau_d; //tau_d is the tau in this direction(angle) and polariation
-	static int j; //J -> j, J-1 = j = J', change at 2009.11.13
-	static double k0;
+// Return sin^2 * I_pa_n[0]
+double i_f_r0m(double x, void * params) {
+	double *n;
+	double cos2, sin2;
+	double tau_d; //tau_d is the tau in this direction(angle) and polariation
+	int j; //J -> j, J-1 = j = J', change at 2009.11.13
+	double k0;
+	double L_factor;  // LVG characteristic scale length factor, L(OBS_ANG) / L(TAU_ANG)
 	n = ((Fn_Param *) params)->n;
 	j = ((Fn_Param *) params)->j;
 	tau_d = ((Fn_Param *) params)->tau;
 	k0 = ((Fn_Param *)params)->k0;
-	cos2 = x*x; //x = cos
-	sin2 = fabs(1-cos2);  //sin^2(\theta)
+	cos2 = x * x; //x = cos
+	sin2 = fabs(1 - cos2);  //sin^2(\theta)
 
-#if TwoD
-	tau_d = tau_d * (k_f_n(n,x,0,j)/k0) * sin(TAU_ANG)*sin(TAU_ANG)/ sin2;
+#if TwoD //use s*s for 2D velocity field, or c*c for 1D velocity field
+	L_factor = sin(TAU_ANG)*sin(TAU_ANG) / sin2;  // Can be +inf
 #elif OneD
-	tau_d = tau_d * (k_f_n(n,x,0,j)/k0) * (cos(TAU_ANG)*cos(TAU_ANG)/ cos2);
+	L_factor = cos(TAU_ANG)*cos(TAU_ANG) / cos2;  // Can be +inf
 #elif Mix
-	tau_d = tau_d * (k_f_n(n,x,0,j)/k0) * ((cos(TAU_ANG)*cos(TAU_ANG) + MixRatio*sin(TAU_ANG)*sin(TAU_ANG))/ (cos2 + MixRatio*sin2));
+	L_factor = (cos(TAU_ANG)*cos(TAU_ANG) + MixRatio * sin(TAU_ANG)*sin(TAU_ANG)) / (cos2 + MixRatio * sin2);
 #else //Isotropic
-	tau_d = tau_d * (k_f_n(n, x, 0, j) / k0);
+	L_factor = 1.;
 #endif
+	tau_d = tau_d * (k_f_n(n, x, 0, j) / k0) * L_factor;
 	return sin2 * I_pa_n(n, x, 0, tau_d, j);
 }
 
 // Integrand of R_JJ' for dM = 1 (R[J'][1]) without the factor 3/4
-double i_f_r1m(double x, void * params) //for R1, integral of I_pa_n[0]*cos^2 + I_pa_n[1]
-{
-	static double *n;
-	static double cos2, sin2;
-	static double tau_d0, tau_d1; //tau_d is the tau in this direction(angle) and polariation
-	static int j; //J -> j, J-1 = j = J', change at 2009.11.13
-	static double k0;
+// Return cos^2 * I_pa_n[0] + I_pa_n[1]
+double i_f_r1m(double x, void * params) {
+	double *n;
+	double cos2, sin2;
+	double tau_d0, tau_d1; //tau_d is the tau in this direction(angle) and polariation
+	int j; //J -> j, J-1 = j = J', change at 2009.11.13
+	double k0;
+	double L_factor;  // LVG characteristic scale length factor, L(OBS_ANG) / L(TAU_ANG)
 	n = ((Fn_Param *) params)->n;
 	j = ((Fn_Param *) params)->j;
 	tau_d0 = ((Fn_Param *) params)->tau;
 	tau_d1 = tau_d0;
 	k0 =  ((Fn_Param *) params)->k0;
-	cos2 = x*x; //x = cos
-	sin2 = fabs(1- cos2);
+	cos2 = x * x; //x = cos
+	sin2 = fabs(1 - cos2);  //sin^2(\theta)
 
 #if TwoD //use s*s for 2D velocity field, or c*c for 1D velocity field
-	tau_d0 = tau_d0 * (k_f_n(n,x,0,j)/k0) * sin(TAU_ANG)*sin(TAU_ANG)/ sin2;
-	tau_d1 = tau_d1 * (k_f_n(n,x,1,j)/k0) * sin(TAU_ANG)*sin(TAU_ANG)/ sin2;
+	L_factor = sin(TAU_ANG)*sin(TAU_ANG) / sin2;  // Can be +inf
 #elif OneD
-	tau_d0 = tau_d0 * (k_f_n(n,x,0,j)/k0) * (cos(TAU_ANG)*cos(TAU_ANG)/ cos2);
-	tau_d1 = tau_d1 * (k_f_n(n,x,1,j)/k0) * (cos(TAU_ANG)*cos(TAU_ANG)/ cos2);
+	L_factor = cos(TAU_ANG)*cos(TAU_ANG) / cos2;  // Can be +inf
 #elif Mix
-	tau_d0 = tau_d0 * (k_f_n(n,x,0,j)/k0) * ((cos(TAU_ANG)*cos(TAU_ANG) + MixRatio*sin(TAU_ANG)*sin(TAU_ANG))/ (cos2 + MixRatio*sin2));
-	tau_d1 = tau_d1 * (k_f_n(n,x,1,j)/k0) * ((cos(TAU_ANG)*cos(TAU_ANG) + MixRatio*sin(TAU_ANG)*sin(TAU_ANG))/ (cos2 + MixRatio*sin2));
+	L_factor = (cos(TAU_ANG)*cos(TAU_ANG) + MixRatio * sin(TAU_ANG)*sin(TAU_ANG)) / (cos2 + MixRatio * sin2);
 #else //Isotropic
-	tau_d0 = tau_d0 * (k_f_n(n,x,0,j)/k0);
-	tau_d1 = tau_d1 * (k_f_n(n,x,1,j)/k0);
+	L_factor = 1.;
 #endif
+	tau_d0 = tau_d0 * (k_f_n(n, x, 0, j) / k0) * L_factor;
+	tau_d1 = tau_d1 * (k_f_n(n, x, 1, j) / k0) * L_factor;
 	return cos2 * I_pa_n(n, x, 0, tau_d0, j) + I_pa_n(n, x, 1, tau_d1, j);
 }
 
@@ -329,7 +329,7 @@ void tau_array(double TAU, double tau[][2], const double n[TOTAL_N]) {
 	L_factor = 1.;
 #endif
 
-	k0 = k_f_n(n, cos(TAU_ANG), 0, 0);  // OBS_ANG was replaced by TAU_ANG [2010.01.22]
+	k0 = k_f_n(n, cos_TAU, 0, 0);  // OBS_ANG was replaced by TAU_ANG [2010.01.22]
 	
 	for(j = 0; j < (LEVEL_N - 1); j++) {	
 		tau[j][0] = TAU * (k_f_n(n, cos_OBS, 0, j) / k0) * L_factor;

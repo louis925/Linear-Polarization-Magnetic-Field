@@ -14,12 +14,12 @@
 //#define MOLE_DATA "sio.win.dat"
 //#define MOLE_DATA "co.green.win.dat"
 
-#define USE_E_LEVEL_FOR_FREQUENCY 1   // Use energy level data to calculate frequency of radiation
+#define USE_E_LEVEL_FOR_FREQUENCY 1 // Use energy level data to calculate frequency of radiation
 #define GNUPLOT_OUTPUT 1            //Creat GNUPLOT demo file or not?
 #define WINDOWS                     //Pause at the end of the program
 
-//Number of levels
-#define LEVEL_N 9                    // Total number of levels (Ex: 2: J = 0 ~ 1)
+// Number of levels
+#define LEVEL_N 2                    // Total number of levels (Ex: 2: J = 0 ~ 1)
 #define TOTAL_N ((LEVEL_N+1)*LEVEL_N)/2 // Total number of independent sublevels (size of n[])
 #define TRANS_N ((LEVEL_N-1)*LEVEL_N)/2 //total transition number for different J (size of C[])
 
@@ -37,38 +37,42 @@
 //#define NC 4.4188406E+04            //sio 30K E4
 //#define NC 5.64629630E6             //sio 100K E4
 //#define NC 6.62826087E4             //sio 500K E4
-#define NC 2E3 // 3E3
+#define NC 3E3 // 3E3
                                      
-//Velocity Gradient Model Select
+// Velocity Gradient Model Select
 #define OneD 0						//cos^2
-#define TwoD 0	                    //sin^2
-#define Isotropic 1 		        //1, If none of all are chose, Isotropic will be default.
+#define TwoD 1	                    //sin^2
+#define Isotropic 0 		        //1, If none of all are chose, Isotropic will be default.
 #define Mix 0                       //Mix of OneD and TwoD:
 #define MixRatio 0.1	            //MixRatio*sin^2 + cos^2
+// OBS_ANG:   Angle between the observational line of sight and the z-axis (direction of B field)
+//            (2D default: M_PI/2, 1D default: 0.4*M_PI)
+// TAU_ANG:   Angle between the direction for the unit of TAU (optical depth) and the z-axis (direction of B field)
+// TAU_START: Initial optical depth. TAU of the first point in the curve.
 #if OneD
-	#define OBS_ANG 0.49167*M_PI         //Observation angle (2D default: M_PI/2, 1D default: 0.4*M_PI)
-	//#define TAU_ANG OBS_ANG              //Use the line of sight as the unit of TAU(optical depth)
-	#define TAU_ANG 0.0                 //Use z direction as TAU(Deguchi and Watson's unit)
-	#define TAU_START 0.001               //started TAU, the optical depth of first point in the curve
+	#define OBS_ANG 0.49167*M_PI         // Observational angle (2D default: M_PI/2, 1D default: 0.4*M_PI)
+	//#define TAU_ANG OBS_ANG            // Use the line of sight as the unit of TAU
+	#define TAU_ANG 0.0                  // Use z direction for the unit of TAU (Deguchi and Watson's unit)
+	#define TAU_START 0.001
 #else
-	#define OBS_ANG 0.5*M_PI             //Observational angle (2D default: M_PI/2, 1D default: 0.4*M_PI)
-	#define TAU_ANG OBS_ANG              //Use the line of sight as the unit of TAU(optical depth)
-	#define TAU_START 0.001               //started TAU, the optical depth of first point in the curve // 0.001 [before 2018]
+	#define OBS_ANG 0.5*M_PI             // Observational angle (2D default: M_PI/2, 1D default: 0.4*M_PI)
+	#define TAU_ANG OBS_ANG              // Use the line of sight for the unit of TAU
+	#define TAU_START 0.001
 	//#define TAU_START 1000.0
 #endif
 
-//Calculation range of TAU
+// Calculation range of TAU
 #define N_TAU 151                    //number of points in the curve
 //#define N_TAU 251                    //number of points in the curve
-#define TAU_INC_RATIO 1.09647819614318 //optical depth increase ratio (increase)
+#define TAU_INC_RATIO 1.09647819614318 //optical depth increase ratio bewteen each point (increase)
 //#define TAU_INC_RATIO 0.9120108393559098 //(decrease)
 
-//Temperature
+// Temperature
 #define TEMP_SELE 11                 //The collisional temperature column that was selected from the LAMDA data (start from 1) // Before 11
 //#define TEMP_SELE 10                 //sio 100K
 //#define TEMP_SELE 31                 //sio 500K
 //#define TEMP_B 50.0                  //Cosmic blackbody radiation temperature
-#define TEMP_B 2.725                 //Cosmic blackbody radiation temperature (K, data from Wiki 2009.12)
+#define TEMP_B 2.725                 //Cosmic background radiation temperature (K, data from Wiki 2009.12)
 
 // Integral methods
 #define GSL_INTEGRAL_QNG 0           // QNG non-adaptive Gauss-Kronrod integration

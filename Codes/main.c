@@ -15,6 +15,7 @@ Ref: Cortes (2005) https://arxiv.org/abs/astro-ph/0504258 https://doi.org/10.108
 #include <math.h>
 #include <time.h>
 #include <gsl/gsl_integration.h>
+#include <gsl/gsl_errno.h>
 #include "parameters.h"
 #include "physics_function.h"
 #include "rate_eq_solv.h"
@@ -22,6 +23,7 @@ Ref: Cortes (2005) https://arxiv.org/abs/astro-ph/0504258 https://doi.org/10.108
 #include "LAMDA_Data_Reader.h"
 #include "coefficients_calculator.h"
 #include "tools.h"
+#include "integral.h"
 
 // Global Variable --------------------
 // for other files(.c .h), please include "global_value.h" to use these variable.
@@ -55,7 +57,7 @@ int main()
 	double I[LEVEL_N-1][2];   // Normalized Specific Intensity for each transition radiation,
 						      // I[j][q] = I(j+1 -> j)(q = 0/1 for parallel/perpendicular)
 	
-	int i, j, k;
+	int i, j;
 	double Pt, It, Id, k0, TAUj;
 	unsigned long long int loop_count_tmp, interval_count_tmp;  // Total loop and integral interval counts
 	
@@ -71,13 +73,15 @@ int main()
 	FILE *fwg;  //.dat file for GNUPlot use
 //#endif
 	
-// Allocate GSL integration workspace
+	// Allocate GSL integration workspace
 #if GSL_INTEGRAL_CQUAD
 	ws = gsl_integration_cquad_workspace_alloc(100);
 #else
 	w = gsl_integration_workspace_alloc(Gsl_Integ_Space);
 #endif
 
+	// Modify the GSL error handler so that the program doesn't abort when encountering numerical error.
+	gsl_set_error_handler(&my_gsl_error);
 
 // =========================== Initialization =============================
 

@@ -21,10 +21,8 @@ void my_gsl_error(const char * reason, const char * file, int line, int gsl_errn
 	//abort();
 }
 
-double integral(double (* f)(double x, void * params), Fn_Param *params, double *error, unsigned int *intervals)
-{ 
-	// We use integral() to integral only the inclination angle (from 0 to pi) 
-	
+// Integrate an even function f from x = -1 to 1 assuming f(-x) = f(x)
+double integral(double (* f)(double x, void * params), Fn_Param *params, double *error, unsigned int *intervals) { 
 	static gsl_function F;
 	double result;
 	int status = 0;
@@ -32,14 +30,14 @@ double integral(double (* f)(double x, void * params), Fn_Param *params, double 
 	F.function = f;
 	F.params = params;
 	
-	// Modify the GSL error handler so that the program doesn't crash when it encounters numerical error.
-	gsl_set_error_handler(&my_gsl_error);
+	// Modify the GSL error handler so that the program doesn't abort when encountering numerical error.
+	//gsl_set_error_handler(&my_gsl_error);  // Already done in main.c
 
-	// Integrate from 0 to 1
+
+	// Integrate from x = 0 to 1
 #if GSL_INTEGRAL_QNG
 	status = gsl_integration_qng(&F, 0, 1, EpsAbs, EpsRel, &result, error, intervals);
 #elif GSL_INTEGRAL_CQUAD
-
 	status = gsl_integration_cquad(&F, 0, 1, EpsAbs, EpsRel, ws, &result, error, NULL);
 	//printf("%d ", ws->size);
 	*intervals = ws->size;
@@ -49,12 +47,12 @@ double integral(double (* f)(double x, void * params), Fn_Param *params, double 
 	*intervals = w->size;
 #endif
 
-	if (status == 21) {
+	if (status == GSL_ESING) {  // If apparent singularity detected
 		printf("\nIntegrand: ");
 		for (int j = 0; j <= 20; j++) {
 			printf("%.3e ", f(j/20., params));
 		}
 	}
 
-	return result*2;
+	return 2 * result;  // Double the result to include contribution from x = -1 to 0
 }

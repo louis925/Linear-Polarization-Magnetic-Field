@@ -42,8 +42,13 @@ void R_cal(const double n[TOTAL_N], double tau, double R[LEVEL_N-1][2]);
 // Given n[], tau[0], number of sample points n_sample, write integrand of R to file output_filename
 void output_integrand_R(const double n[TOTAL_N], double tau, int n_sample, const char* output_filename);
 
-double i_f_r0m(double x, void * params); //for R0, integral of I_pa_n[0]*sin^2
-double i_f_r1m(double x, void * params); //for R1, integral of I_pa_n[0]*cos^2 + I_pa_n[1]
+// Integrand of R_JJ' for dM = 0 (R[J'][0]) without the factor 3/2
+// Return sin^2 * I_pa_n[0]
+double i_f_r0m(double x, void * params);
+
+// Integrand of R_JJ' for dM = 1 (R[J'][1]) without the factor 3/4
+// Return cos^2 * I_pa_n[0] + I_pa_n[1]
+double i_f_r1m(double x, void * params);
 
 // Construct the optical depth array, tau[][]
 // Given n[], TAU, calculate all tau[][].
