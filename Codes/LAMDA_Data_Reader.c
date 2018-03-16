@@ -202,11 +202,9 @@ int lamda_data_reader(double *A, double *v, double *C, double *energy_level, dou
 
 #if SHOW_C
 	printf("C[]:\n");
-	i = 0;
-	while(i < use_ncol)
+	for(i = 0; i < use_ncol; i++)
 	{
 		printf("%.2e\n", C[i]);
-		i++;
 	}
 #endif
 

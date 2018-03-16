@@ -13,5 +13,6 @@ extern unsigned long long int loop_count;        //count of loops
 extern unsigned long long int interval_count;    //count for integral intervals number
 extern double T;              //temperature of cloud
 extern gsl_integration_workspace *w;
+extern gsl_integration_cquad_workspace *ws;  // GSL integration workspace for CQUAD method
 #define _GLOBAL_VALUE_H_
 #endif

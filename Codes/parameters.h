@@ -1,24 +1,25 @@
-//2012.11.20
+//2018.03.15
 #include <gsl/gsl_math.h>
 
 #define OUTPUT_VER "c3.7"
-#define OUTPUT_FILE_TAG "co"        // Any additional description of the run
+#define OUTPUT_FILE_TAG "co2009"        // Any additional description of the run
 //#define OUTPUT_FILE_TAG "sio"     // Any additional description of the run
 #define OUTPUT_TYPE ".csv"
 // Output file name will be: OUTPUT_VER[LEVEL_N][Dim][NC NC][OBS_ANG PI][T K][TEMP_B K]OUTPUT_FILE_TAG.OUTPUT_TYPE
 // Example: c3.4[5][2D][NC 2.1827E1][0.5PI][30K][2.725K]co.csv
 
+// Molecule data file from LAMDA:
+//#define MOLE_DATA "co.win.dat"             
+#define MOLE_DATA "co2009.win.dat"
+//#define MOLE_DATA "sio.win.dat"
+//#define MOLE_DATA "co.green.win.dat"
+
+#define USE_E_LEVEL_FOR_FREQUENCY 1   // Use energy level data to calculate frequency of radiation
 #define GNUPLOT_OUTPUT 1            //Creat GNUPLOT demo file or not?
 #define WINDOWS                     //Pause at the end of the program
 
-// Molecule data file from LAMDA:
-#define MOLE_DATA "co.win.dat"             
-//#define MOLE_DATA "sio.win.dat"
-//#define MOLE_DATA "co.green.win.dat"
-#define USE_E_LEVEL_FOR_FREQUENCY 1   // Use energy level data to calculate frequency of radiation
-
 //Number of levels
-#define LEVEL_N 3                    // Total number of levels (Ex: 2: J = 0 ~ 1)
+#define LEVEL_N 9                    // Total number of levels (Ex: 2: J = 0 ~ 1)
 #define TOTAL_N ((LEVEL_N+1)*LEVEL_N)/2 // Total number of independent sublevels (size of n[])
 #define TRANS_N ((LEVEL_N-1)*LEVEL_N)/2 //total transition number for different J (size of C[])
 
@@ -36,7 +37,7 @@
 //#define NC 4.4188406E+04            //sio 30K E4
 //#define NC 5.64629630E6             //sio 100K E4
 //#define NC 6.62826087E4             //sio 500K E4
-#define NC 3E3
+#define NC 2E3 // 3E3
                                      
 //Velocity Gradient Model Select
 #define OneD 0						//cos^2
@@ -63,32 +64,36 @@
 //#define TAU_INC_RATIO 0.9120108393559098 //(decrease)
 
 //Temperature
-#define TEMP_SELE 11                 //The collisional temperature column that was selected from the LAMDA data (start from 1) // Before 5
+#define TEMP_SELE 11                 //The collisional temperature column that was selected from the LAMDA data (start from 1) // Before 11
 //#define TEMP_SELE 10                 //sio 100K
 //#define TEMP_SELE 31                 //sio 500K
 //#define TEMP_B 50.0                  //Cosmic blackbody radiation temperature
 #define TEMP_B 2.725                 //Cosmic blackbody radiation temperature (K, data from Wiki 2009.12)
 
-//================================================================================================//
+// Integral methods
+#define GSL_INTEGRAL_QNG 0           // QNG non-adaptive Gauss-Kronrod integration
+#define GSL_INTEGRAL_CQUAD 0         // CQUAD doubly-adaptive integration method
+// If not using both of them, then in default it uses QAGS adaptive integration with singularities method
+#define Gsl_Integ_Space 12000        // Allocated space for GSL Integration if not using CQUAD
+#define Gsl_Integ_CQUAD_Space 100    // Allocated space for GSL Integration with CQUAD method
 
-//Constant (data from Wiki 2018.03)
-#define h_CONST 6.626070040E-34      //Plank constant (J*s)
-#define LIGHT_SPEED 299792458.0      //Speed of light (m/s)
-#define k_CONST 1.38064852E-23       //Boltzmann constant (J*K^-1)
+//================================================================================================//
 
 #define REL_PREC 1E-6                //n[] precision for rate eq solving, used in rate_eq_solv.c
 #define EpsRel 1e-4                  //integral relative precision, used in integral.c
 #define EpsAbs 0.                    //integral absolute precision, used in integral.c
 
 #define SLOW_MODE 0                  //use the thermal equilibrium population n[] as the initial value for each main loop
-#define SCALE_A 1                    //Wether to scale a_matrix
+#define SCALE_A 0                    //Wether to scale a_matrix
 
-#define GSL_INTEGRAL_QNG 0
-#define Gsl_Integ_Space 12000        //Allocated space for GSL Integration
+//Constant (data from Wiki 2018.03)
+#define h_CONST 6.626070040E-34      //Plank constant (J*s)
+#define LIGHT_SPEED 299792458.0      //Speed of light (m/s)
+#define k_CONST 1.38064852E-23       //Boltzmann constant (J*K^-1)
 
 //debug use option-------------------------------
 #define SHOW_A_V 0                   //Show the A[] and v[] that read from MOLE_DATA
-#define SHOW_C 0                     //Show the C[] that read from MOLE_DATA
+#define SHOW_C 1                     //Show the C[] that read from MOLE_DATA
 #define SHOW_NI 1                    //Show the initial n[] that calculated by n_initial_cal()
 #define SHOW_NF 0                    //Show the finial n[] that calculated by n_initial_cal()
 #define OUTPUT_A_MATRIX_I 1          //Output the a_matrix_i[] that calculated by a_matrix_initialize() 

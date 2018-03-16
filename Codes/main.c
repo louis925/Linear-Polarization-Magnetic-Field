@@ -38,6 +38,7 @@ double a_matrix[TOTAL_N*TOTAL_N];     // A matrix. We use 1D array to represent 
 double a_matrix_i[TOTAL_N*TOTAL_N];   // Initial a_matrix[]. We use 1D array to represent 2D matrix
 
 gsl_integration_workspace *w;         // GSL integration workspace
+gsl_integration_cquad_workspace *ws;  // GSL integration workspace for CQUAD method
 
 unsigned long long int loop_count = 0;        //count of loops
 unsigned long long int interval_count = 0;    //count for integral intervals number
@@ -70,6 +71,13 @@ int main()
 	FILE *fwg;  //.dat file for GNUPlot use
 //#endif
 	
+// Allocate GSL integration workspace
+#if GSL_INTEGRAL_CQUAD
+	ws = gsl_integration_cquad_workspace_alloc(100);
+#else
+	w = gsl_integration_workspace_alloc(Gsl_Integ_Space);
+#endif
+
 
 // =========================== Initialization =============================
 
@@ -230,7 +238,7 @@ int main()
 	loop_count_tmp = loop_count;
 	interval_count_tmp = interval_count;
 	calcul_time[0] = clock();
-	w = gsl_integration_workspace_alloc (Gsl_Integ_Space); //allocate GSL integration workspace
+	
 
 	// Main Loop ----------------------------------------------------------------
 	TAU = TAU_START; //set TAU to started tau
@@ -312,7 +320,12 @@ int main()
 	// Main Loop--------------------------------------------------------------//
 
 	printf("Total loops: %llu    Total integral intervals: %llu\n", loop_count, interval_count);
+
+#if GSL_INTEGRAL_CQUAD
+	gsl_integration_cquad_workspace_free(ws);
+#else
 	gsl_integration_workspace_free (w);  //release GSL integration workspace
+#endif
 
 // ========================= Main Calculation done ============================//
 // ============================================================================//

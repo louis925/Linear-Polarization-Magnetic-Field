@@ -37,7 +37,12 @@ double integral(double (* f)(double x, void * params), Fn_Param *params, double 
 
 	// Integrate from 0 to 1
 #if GSL_INTEGRAL_QNG
-	status = gsl_integration_qng(&F, 0, 1, EpsAbs, EpsRel, &result, error, intervals);	
+	status = gsl_integration_qng(&F, 0, 1, EpsAbs, EpsRel, &result, error, intervals);
+#elif GSL_INTEGRAL_CQUAD
+
+	status = gsl_integration_cquad(&F, 0, 1, EpsAbs, EpsRel, ws, &result, error, NULL);
+	//printf("%d ", ws->size);
+	*intervals = ws->size;
 #else
 	status = gsl_integration_qags (&F, 0, 1, EpsAbs, EpsRel, Gsl_Integ_Space, w, &result, error); 
 	//printf("%d ", w->size);
