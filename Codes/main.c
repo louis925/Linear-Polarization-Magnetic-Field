@@ -509,7 +509,8 @@ void testing() {
 #endif
 
 #if TEST_RATE_EQ_FILL && LEVEL_N == 3
-	test_rate_eq_fill_3();  // Pass on 2018.03.12
+	test_rate_eq_fill_A_3();  // Pass on 2018.03.12
+	test_rate_eq_fill_iso_3();
 #endif
 
 #if TEST_S_ISO
@@ -525,10 +526,14 @@ void testing() {
 #endif
 
 #if TEST_BETA
-	test_beta_f();
+	test_beta_f();  // Pass on 2018.03.17
 #endif
 
 #if TEST_R_CAL_ISO
-	test_R_cal_iso();
+	test_R_cal_iso();  // Pass on 2018.03.17
+#endif
+
+#if TEST_REDUCE
+	test_reduce();  // Pass on 2018.03.18
 #endif
 }

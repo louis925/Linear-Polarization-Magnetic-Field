@@ -132,6 +132,7 @@
 #define TEST_K_3 1                   // Test k_f_n for N=3 case
 #define TEST_BETA 1                  // Test beta_f()
 #define TEST_R_CAL_ISO 1             // Test R_cal() for isotropic case
+#define TEST_REDUCE 0                // Test reduce()
 // Debug use option-----------------------------//
 
 // for Visual Stdio 2005 Compiler

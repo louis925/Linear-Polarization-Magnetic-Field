@@ -150,7 +150,7 @@ void rate_eq_solve(double n[TOTAL_N], double TAU) {
 		printf("R[][] constains negative values! Solution may not valid.\n"); 
 #if 1
 		//check a_matrix[]********
-		printf("[Debug] a_matrix[][] output.\n");
+		printf("[Debug] ");
 		output_a_matrix(a_matrix, "a_matrix_n[].csv");
 #endif
 		pause();
@@ -443,10 +443,10 @@ int test_a_matrix_initialize_3() {
 	}
 }
 
-// Test rate_eq_fill() for LEVEL_N = 3
+// Test rate_eq_fill() with only A[] for LEVEL_N = 3
 // Test filling of A[] terms to a_matrix[] without radiation
-int test_rate_eq_fill_3() {
-	char testname[] = "rate_eq_fill()";
+int test_rate_eq_fill_A_3() {
+	char testname[] = "rate_eq_fill() with A only for N = 3";
 	double a_matrix[TOTAL_N*TOTAL_N] = { 0. }; // For filling answer
 	double R[LEVEL_N - 1][2] = { { 0., 0. },{ 0., 0. } };  // No radiation
 	double a_matrix_ans[TOTAL_N*TOTAL_N] = {
@@ -469,6 +469,89 @@ int test_rate_eq_fill_3() {
 	total_err = relative_error_1D(a_matrix, a_matrix_ans, TOTAL_N*TOTAL_N, err_a_matrix);
 	printf("Test N=3 rate_eq_fill() with error: %.3e\n", total_err);
 	output_a_matrix(err_a_matrix, "a_matrix_test_A_error[].csv");
+	return check_error(testname, total_err, 0.01);
+}
+
+// Test rate_eq_fill() for LEVEL_N = 3 isotropic cases
+// Test A[] and R[] terms to a_matrix[] in the limiting cases of tau = 0, inf
+int test_rate_eq_fill_iso_3() {
+	char testname[] = "rate_eq_fill() for N = 3, isotropic cases";
+	double n[TOTAL_N] = { 0. };
+	double R[LEVEL_N - 1][2] = { { 0., 0. },{ 0., 0. } };
+	double a_matrix[TOTAL_N*TOTAL_N] = { 0. }; // For filling answer
+	double a_matrix_red[LEVEL_N*LEVEL_N] = { 0. }; // Reduced a_matrix
+
+	// Expected answer for tau = 0 case.
+	double a_matrix_red_ans_0[LEVEL_N*LEVEL_N] = {
+				    0.,                                             0.,                           0.,
+		A[0] * Br_n[0], -A[0] * (1 + Br_n[0]) - 5.*A[1] * Br_n[1] / 3., 5.*A[1] * (1 + Br_n[1]) / 3.,
+		            0.,                                 A[1] * Br_n[1],        -A[1] * (1 + Br_n[1])
+	};
+	// Expected answer for tau = inf case.
+	double a_matrix_red_ans_1[LEVEL_N*LEVEL_N] = { 0. }; 
+
+	double err_a_matrix[LEVEL_N*LEVEL_N] = { 0. };  // Relative error in a_matrix_red
+	double total_err = 0.;
+
+	printf("Testing %s:\n", testname);
+
+	// Set test population to be be isotropic with equal spacing.
+	// Ex: For LEVEL_N = 3, n_2m = 1, n_1m = 2, n_00 = 3.
+	for (int j = 0; j < LEVEL_N; j++) {
+		for (int m = 0; m <= j; m++) {
+			n[indexN(j, m)] = (LEVEL_N - j); // For isotropic case, n[] should be m independent.
+		}
+	}
+	print_n(n);
+
+	// Optical thin, tau = 0 (beta = 1) case
+	// Background radiation dominates
+	printf("Optical thin, tau = 0 (beta = 1) case:\n");
+	R_cal(n, 0., R);
+	printf("R[]: ");
+	print_R(R);
+	printf("\n");
+	rate_eq_fill(a_matrix, R);
+	reduce(a_matrix, a_matrix_red, LEVEL_N);
+	total_err += relative_error_1D(a_matrix_red, a_matrix_red_ans_0, LEVEL_N*LEVEL_N, err_a_matrix);
+
+	printf("a[]     : ");
+	print_array(a_matrix_red, LEVEL_N*LEVEL_N);
+	printf("\n");
+
+	printf("a_answ[]: ");
+	print_array(a_matrix_red_ans_0, LEVEL_N*LEVEL_N);
+	printf("\n");
+
+	printf("error[] : ");
+	print_array(err_a_matrix, LEVEL_N*LEVEL_N);
+	printf("\n");
+
+	erase(a_matrix, TOTAL_N*TOTAL_N, 0.);
+
+	// Optical thick, tau = inf (beta = 0) case
+	// Thermal equilibrium from collision dominates
+	printf("Optical thick, tau = inf (beta = 0) case:\n");
+	R_cal(n, INFINITY, R);
+	printf("R[]: ");
+	print_R(R);
+	printf("\n");
+	rate_eq_fill(a_matrix, R);
+	reduce(a_matrix, a_matrix_red, LEVEL_N);
+	total_err += relative_error_1D(a_matrix_red, a_matrix_red_ans_1, LEVEL_N*LEVEL_N, err_a_matrix);
+		
+	printf("a[]     : ");
+	print_array(a_matrix_red, LEVEL_N*LEVEL_N);
+	printf("\n");
+
+	printf("a_answ[]: ");
+	print_array(a_matrix_red_ans_1, LEVEL_N*LEVEL_N);
+	printf("\n");
+
+	printf("error[] : ");
+	print_array(err_a_matrix, LEVEL_N*LEVEL_N);
+	printf("\n");
+
 	return check_error(testname, total_err, 0.01);
 }
 #endif

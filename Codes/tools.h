@@ -1,5 +1,8 @@
 #pragma once
 
+// Print an array
+void print_array(const double A[], int len);
+
 // Print A[]/v[]^2 horizontally
 void print_Av2(const double A[LEVEL_N - 1], const double v[LEVEL_N - 1]);
 
@@ -35,6 +38,16 @@ double relative_error_2D(const double array1[][2], const double array2[][2], int
 // Check if the error of the test "testname" is within tolerance
 // Return 1: pass, 0: fail
 int check_error(char *testname, double total_err, double tolerance);
+
+// Set all elements in array A[] to value val
+// Size of A[] = len
+void erase(double A[], int len, double val);
+
+// Reduce the a_matrix for isotropic case
+// Reduce a_matrix by merging the contribution from all the sublevels of each J into one (ex: n1 = n10 + 2*n11)
+// a_matrix[]  : ((N + 1)*N) / 2 * ((N + 1)*N) / 2
+// a_matrix_red: N * N
+void reduce(const double a_matrix[], double a_matrix_red[], int N);
 
 // Pause for Windows
 void pause();

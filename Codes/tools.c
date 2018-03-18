@@ -5,6 +5,13 @@
 #include "physics_function.h"
 #include "tools.h"
 
+// Print an array
+void print_array(const double A[], int len) {
+	for (int i = 0; i < len; i++) {
+		printf("%.2e ", A[i]);
+	}
+}
+
 // Print A[]/v[]^2 horizontally
 void print_Av2(const double A[LEVEL_N - 1], const double v[LEVEL_N - 1]) {
 	printf("A[]/v[]^2: ");
@@ -120,7 +127,6 @@ double relative_error_2D(const double array1[][2], const double array2[][2], int
 	return total_err;
 }
 
-
 // Check if test pass or fail
 int check_error(char *testname, double total_err, double tolerance) {
 	printf("Test on %s ", testname);
@@ -135,10 +141,74 @@ int check_error(char *testname, double total_err, double tolerance) {
 	}
 }
 
+// Set all elements in array A[] to value val
+// Size of A[] = len
+void erase(double A[], int len, double val) {
+	for (int i = 0; i < len; i++) {
+		A[i] = val;
+	}
+}
+
+// Reduce the a_matrix for isotropic case
+// Reduce a_matrix by merging the contribution from all the sublevels of each J into one (ex: n1 = n10 + 2*n11)
+// a_matrix[]  : ((N + 1)*N) / 2 * ((N + 1)*N) / 2
+// a_matrix_red: N * N
+void reduce(const double a_matrix[], double a_matrix_red[], int N) {
+	int N_row = ((N + 1)*N) / 2;
+	for (int J = 0; J < N; J++) {
+		int M = 0; // Only deal rows with M = 0. Igonre M != 0 rows.
+		for (int j = 0; j < N; j++) {
+			double a = 0.;
+			for (int m = 0; m <= j; m++) {
+				a += a_matrix[indexN(J, M) * N_row + indexN(j, m)];
+			}
+			a_matrix_red[J * N + j] = a;
+		}		
+	}
+}
+
 // Pause for Windows
 void pause() {
 #ifdef WINDOWS
 	getchar();
 #endif
 	return;
+}
+
+
+// Test =======================================================
+// Test reduce()
+int test_reduce() {
+	char testname[] = "reduce()";
+#define N_test_reduce 3
+	int N = N_test_reduce;
+	int N_row = ((N_test_reduce + 1)*N_test_reduce) / 2;
+	double a_matrix[((N_test_reduce + 1)*N_test_reduce) / 2 * ((N_test_reduce + 1)*N_test_reduce) / 2];
+	double a_matrix_red[N_test_reduce * N_test_reduce];
+	double a_matrix_red_answ[N_test_reduce * N_test_reduce] = {1, 2, 3, 1, 2, 3, 1, 2, 3 };
+	double err_a[N_test_reduce * N_test_reduce];
+	double total_err = 0.;
+
+	printf("Testing on %s\n", testname);
+
+	for (int i = 0; i < N_row * N_row; i++) {
+		a_matrix[i] = 1.; 
+	}
+
+	reduce(a_matrix, a_matrix_red, N);
+	total_err = relative_error_1D(a_matrix_red, a_matrix_red_answ, N*N, err_a);
+
+	printf("a_matrix[]: ");
+	print_array(a_matrix, N_row * N_row);
+	printf("\n");
+
+	printf("a_matrix_red[]     : ");
+	print_array(a_matrix_red, N * N);
+	printf("\n");
+
+	printf("a_matrix_red_answ[]: ");
+	print_array(a_matrix_red_answ, N * N);
+	printf("\n");
+
+	return check_error(testname, total_err, 1E-8);
 }

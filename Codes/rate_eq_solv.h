@@ -21,7 +21,11 @@ int test_a_matrix_initialize_3();
 
 // Test rate_eq_fill() for LEVEL_N = 3
 // Test filling of A[] terms to a_matrix[] without radiation
-int test_rate_eq_fill_3();
+int test_rate_eq_fill_A_3();
+
+// Test rate_eq_fill() for LEVEL_N = 3 isotropic cases
+// Test A[] and R[] terms to a_matrix[] in the limiting cases of tau = 0, inf
+int test_rate_eq_fill_iso_3();
 #endif
 
 // Test rate_eq_solve with only C[] terms and particle conservation (a_matrix_i)
