@@ -23,7 +23,11 @@ double A_coeff(int J, int M, int dM);
 // of normalized source function
 double source_f_n(const double n[TOTAL_N], double angle, int q, int J);
 
-// Normalized absorption coefficients (divided by FJJ')
+// Normalized absorption coefficients
+// Absorption coefficients divided by the normalized factor, phi(v-v_JJ') * c_light_speed^2 * 3 / 8pi,
+// for the transition j+1 -> j with polarization q, viewing angle, angle = cos(theta), and population n[],
+// where phi(v-v_JJ') is the line profile function.
+// Note lower j = J' = J-1.
 double k_f_n(const double n[TOTAL_N], double angle, int q, int j);
 
 // Escape probability
@@ -57,10 +61,21 @@ void tau_array(double TAU, double tau[][2], const double n[TOTAL_N]);
 // Normalized emerge specific intensity, (intensity divided by F = 2hv^3/c^2)
 void I_emerge_n(const double n[], const double tau[][2], double I[][2]);
 
+// Testing ====================================================================================
+
 // Test source function for isotropic case
 int test_source_f_n_iso();
 
-// Test source_f_n() for LEVEL_N = 3
 #if LEVEL_N == 3
+// Test source_f_n() for LEVEL_N = 3
 int test_source_f_n_3();
+
+// Test k_f_n() for LEVEL_N = 3
+int test_k_f_n_3();
 #endif
+
+// Test beta_f()
+int test_beta_f();
+
+// Test R_cal() for isotropic case
+int test_R_cal_iso();

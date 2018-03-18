@@ -25,7 +25,7 @@ Ref: Cortes (2005) https://arxiv.org/abs/astro-ph/0504258 https://doi.org/10.108
 #include "tools.h"
 #include "integral.h"
 
-// Global Variable --------------------
+// Global Variables --------------------
 // for other files(.c .h), please include "global_value.h" to use these variable.
 double A[LEVEL_N-1] = {0.0};          // Einstein coefficients for J -> J'=J-1, AJJ' = A[J']
 double C[TRANS_N] = {0.0};            // Collisional excitation rates for J -> J', CJJ' = C[(J-1)J/2+J'], C[] = {C10,C20,C21,C30,C31...}
@@ -42,11 +42,12 @@ double a_matrix_i[TOTAL_N*TOTAL_N];   // Initial a_matrix[]. We use 1D array to 
 gsl_integration_workspace *w;         // GSL integration workspace
 gsl_integration_cquad_workspace *ws;  // GSL integration workspace for CQUAD method
 
-unsigned long long int loop_count = 0;        //count of loops
-unsigned long long int interval_count = 0;    //count for integral intervals number
-// Global Variable ------------------//
+unsigned long long int loop_count = 0;    // Counter of loops
+unsigned long long int interval_count = 0;// Counter for integral intervals number
+// Global Variables ------------------//
 
 void generate_output_filenames(char* file_name, char* file_name_g, int* file_name_index, double T);
+void testing(); // All the testing functions
 
 int main()
 {
@@ -201,26 +202,14 @@ int main()
 	}
 	printf("\n");
 #endif
+
+#if SHOW_AV2
+	print_Av2(A, v);
+#endif
 	
-#if TEST_A_INIT && LEVEL_N == 3
-	test_a_matrix_initialize_3();  // Pass on 2018.03.08
-#endif
+	// Testing _________________________________________
+	testing();
 
-#if TEST_A_INIT_SOLVE
-	test_solve_a_matrix_i();  // Pass on 2018.03.11
-#endif
-
-#if TEST_RATE_EQ_FILL && LEVEL_N == 3
-	test_rate_eq_fill_3();  // Pass on 2018.03.12
-#endif
-
-#if TEST_S_ISO
-	test_source_f_n_iso();  // Pass on 2018.03.14
-#endif
-
-#if TEST_S_3 && LEVEL_N == 3
-	test_source_f_n_3();  // Pass on 2018.03.14
-#endif
 	printf("========== Initialization done. ==========\n\n");//*****
 
 // ========================= Initialization done =======================//
@@ -248,7 +237,7 @@ int main()
 	TAU = TAU_START; //set TAU to started tau
 	for (i = 0; i < N_TAU; i++) //N_TAU = number of points in the curve
 	{
-		printf("%d: %.2e ", i, TAU);
+		printf("%3d: %.2e ", i, TAU);
 
 #if SLOW_MODE
 		n_initial_cal(n,T); // Use thermal equilibrium to initialize n[] for each TAU
@@ -426,7 +415,7 @@ int main()
 	fprintf(fw, "Loops,%llu,,Intervals,%llu\n", loop_count, interval_count);
 	current_time = time(NULL);
 	c_time_string = ctime(&current_time);
-	fprintf(fw, "Version,%s,,Date,%s\n",OUTPUT_VER,c_time_string);
+	fprintf(fw, "Version,%s,,Date,%s\n", OUTPUT_VER, c_time_string);
 	// write calculation information to the file---------------------//
 	
 	
@@ -509,3 +498,37 @@ void generate_output_filenames(char* file_name, char* file_name_g, int* file_nam
 	i += sprintf(file_name + i, OUTPUT_TYPE); //ex: .csv
 }
 
+// All the testing functions
+void testing() {
+#if TEST_A_INIT && LEVEL_N == 3
+	test_a_matrix_initialize_3();  // Pass on 2018.03.08
+#endif
+
+#if TEST_A_INIT_SOLVE
+	test_solve_a_matrix_i();  // Pass on 2018.03.11
+#endif
+
+#if TEST_RATE_EQ_FILL && LEVEL_N == 3
+	test_rate_eq_fill_3();  // Pass on 2018.03.12
+#endif
+
+#if TEST_S_ISO
+	test_source_f_n_iso();  // Pass on 2018.03.14
+#endif
+
+#if TEST_S_3 && LEVEL_N == 3
+	test_source_f_n_3();  // Pass on 2018.03.14
+#endif
+
+#if TEST_K_3 && LEVEL_N == 3
+	test_k_f_n_3();  // Pass on 2018.03.17
+#endif
+
+#if TEST_BETA
+	test_beta_f();
+#endif
+
+#if TEST_R_CAL_ISO
+	test_R_cal_iso();
+#endif
+}

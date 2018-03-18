@@ -13,6 +13,8 @@ void n_initial_cal(double n[TOTAL_N], double T);
 // Fill first row with particle number conservation. Fill the rest rows with collisional excitation rates C[].
 void a_matrix_initialize(double a_matrix[TOTAL_N*TOTAL_N]);//2009.11.12 Check OK (for C coeff)
 
+// Testing ====================================================================================
+
 #if LEVEL_N == 3
 // Test a_matrix_initialize() for LEVEL_N = 3
 int test_a_matrix_initialize_3();

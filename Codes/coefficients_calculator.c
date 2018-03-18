@@ -92,7 +92,7 @@ int coeff_cal(const double *energy_level, double *v, double *E, double *F, doubl
 #if USE_E_LEVEL_FOR_FREQUENCY //[2012.11.17]
 	x = LIGHT_SPEED * 100.0 * h_CONST / k_CONST / TEMP_B;
 	for (j = 0; j < (LEVEL_N - 1); j++) {
-		Br_n[j] = 1/(exp(x*(energy_level[j+1] - energy_level[j]))-1); //already divided by F = 2hv^3/c^2
+		Br_n[j] = 1 / (exp(x*(energy_level[j + 1] - energy_level[j])) - 1); //already divided by F = 2hv^3/c^2
 	}
 #else
 	x = h_CONST/k_CONST/TEMP_B*1E9; //the unit of frequency v[] is GHz, GHz = 10^9 Hz

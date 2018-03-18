@@ -101,7 +101,7 @@ void rate_eq_solve(double n[TOTAL_N], double TAU) {
 #if 1
 		//check a_matrix[]********
 		if (TAU == TAU_START && l == 0) {
-			printf("[Debug] a_matrix[][] output.\n");
+			printf("[Debug] ");
 			output_a_matrix(a_matrix, "a_matrix_0[].csv");
 		}
 #endif	
@@ -429,7 +429,7 @@ int test_a_matrix_initialize_3() {
 	
 	output_a_matrix(a_matrix, "a_matrix_test_init[].csv");
 	output_a_matrix(a_matrix_ans, "a_matrix_test_init_answ[].csv");
-	total_err = relative_error(a_matrix, a_matrix_ans, TOTAL_N*TOTAL_N, err_a_matrix);
+	total_err = relative_error_1D(a_matrix, a_matrix_ans, TOTAL_N*TOTAL_N, err_a_matrix);
 	printf("Test N=3 a_matrix initialization with error: %.3e\n", total_err);
 	output_a_matrix(err_a_matrix, "a_matrix_test_init_error[].csv");
 	if (fabs(total_err) < 0.01) {
@@ -446,6 +446,7 @@ int test_a_matrix_initialize_3() {
 // Test rate_eq_fill() for LEVEL_N = 3
 // Test filling of A[] terms to a_matrix[] without radiation
 int test_rate_eq_fill_3() {
+	char testname[] = "rate_eq_fill()";
 	double a_matrix[TOTAL_N*TOTAL_N] = { 0. }; // For filling answer
 	double R[LEVEL_N - 1][2] = { { 0., 0. },{ 0., 0. } };  // No radiation
 	double a_matrix_ans[TOTAL_N*TOTAL_N] = {
@@ -459,30 +460,23 @@ int test_rate_eq_fill_3() {
 	double err_a_matrix[TOTAL_N*TOTAL_N] = { 0. };  // Relative error in a_matrix
 	double total_err = 0.;
 	
-	printf("Testing rate_eq_fill():\n");
+	printf("Testing %s:\n", testname);
 
 	rate_eq_fill(a_matrix, R);
 
 	output_a_matrix(a_matrix, "a_matrix_test_A[].csv");
 	output_a_matrix(a_matrix_ans, "a_matrix_test_A_answ[].csv");
-	total_err = relative_error(a_matrix, a_matrix_ans, TOTAL_N*TOTAL_N, err_a_matrix);
+	total_err = relative_error_1D(a_matrix, a_matrix_ans, TOTAL_N*TOTAL_N, err_a_matrix);
 	printf("Test N=3 rate_eq_fill() with error: %.3e\n", total_err);
 	output_a_matrix(err_a_matrix, "a_matrix_test_A_error[].csv");
-	if (fabs(total_err) < 0.01) {
-		printf("Test on rate_eq_fill() pass.\n\n");
-		return 1;  // Pass
-	}
-	else {
-		printf("Test on rate_eq_fill() fail!\n\n");
-		pause();
-		return 0;  // Fail
-	}
+	return check_error(testname, total_err, 0.01);
 }
 #endif
 
 // Test rate_eq_solve with only C[] terms and particle conservation (a_matrix_i)
 // This is not a test on rate_eq_solve() function but a mathematical check of the solution
 int test_solve_a_matrix_i() {
+	char testname[] = "solve_a_matrix_i";
 	double b[TOTAL_N] = { Nt, 0.0 };
 	double n[TOTAL_N] = { 0. };           // Population obtained by solving the a_matrix[]
 	double n_eq[TOTAL_N] = { 0. };        // Thermal equilibrium population given by n_initial_cal()
@@ -518,16 +512,8 @@ int test_solve_a_matrix_i() {
 	printf("From thermal equilibrium ");
 	print_n(n_eq);
 
-	total_err = relative_error(n, n_eq, TOTAL_N, err_n);
+	total_err = relative_error_1D(n, n_eq, TOTAL_N, err_n);
 	printf("Total error: %.3e\n", total_err);
 
-	if (fabs(total_err) < 0.01) {
-		printf("Test on solve_a_matrix_i pass.\n\n");
-		return 1;  // Pass
-	} 
-	else {
-		printf("Test on solve_a_matrix_i fail!\n\n");
-		pause();
-		return 0;  // Fail
-	}
+	return check_error(testname, total_err, 0.01);
 }

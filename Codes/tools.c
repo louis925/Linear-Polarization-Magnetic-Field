@@ -5,6 +5,15 @@
 #include "physics_function.h"
 #include "tools.h"
 
+// Print A[]/v[]^2 horizontally
+void print_Av2(const double A[LEVEL_N - 1], const double v[LEVEL_N - 1]) {
+	printf("A[]/v[]^2: ");
+	for (int i = 0; i < LEVEL_N - 1; i++) {
+		printf("%.3e ", A[i] / (v[i] * v[i]));
+	}
+	printf("\n\n");
+}
+
 void output_a_matrix(const double* a_matrix, const char* a_matrix_filename) {
 	printf("Output a_matrix[][] to file %s\n", a_matrix_filename);
 	FILE *amf;
@@ -82,18 +91,48 @@ void print_I_limit(const double E[TRANS_N], const double Br_n[LEVEL_N - 1], cons
 	printf("\n");
 }
 
-// Check relative error between array1 and array2 with length len
+double relative_error(double a, double b) {
+	if (a == b) { return 0.; }
+	else { return (a - b) / (fabs(a) + fabs(b)); }
+}
+
+// Compute relative error between array1 and array2 with length len
 // Save relative error in err_array. Return total relative error.
-double relative_error(const double array1[], const double array2[], int len, double err_array[]) {
+double relative_error_1D(const double array1[], const double array2[], int len, double err_array[]) {
 	double total_err = 0.;
 	for (int i = 0; i < len; i++) {
-		err_array[i] = array1[i] - array2[i];
-		if ((fabs(array1[i]) + fabs(array2[i])) != 0.) {
-			err_array[i] /= (fabs(array1[i]) + fabs(array2[i]));
-		}
+		err_array[i] = relative_error(array1[i], array2[i]);
 		total_err += err_array[i];
 	}
 	return total_err;
+}
+
+// Compute relative error between array1[][2] and array2[][2] with length len
+// Save relative error in err_array. Return total relative error.
+double relative_error_2D(const double array1[][2], const double array2[][2], int len, double err_array[][2]) {
+	double total_err = 0.;
+	for (int i = 0; i < len; i++) {
+		err_array[i][0] = relative_error(array1[i][0], array2[i][0]);
+		err_array[i][1] = relative_error(array1[i][1], array2[i][1]);
+		total_err += err_array[i][0];
+		total_err += err_array[i][1];
+	}
+	return total_err;
+}
+
+
+// Check if test pass or fail
+int check_error(char *testname, double total_err, double tolerance) {
+	printf("Test on %s ", testname);
+	if (fabs(total_err) < tolerance) {
+		printf("pass.\n\n");
+		return 1;  // Pass
+	}
+	else {
+		printf("fail with error %.2e!\n\n", total_err);
+		pause();
+		return 0;  // Fail
+	}
 }
 
 // Pause for Windows

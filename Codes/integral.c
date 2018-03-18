@@ -52,6 +52,7 @@ double integral(double (* f)(double x, void * params), Fn_Param *params, double 
 		for (int j = 0; j <= 20; j++) {
 			printf("%.3e ", f(j/20., params));
 		}
+		print_n(params->n);
 	}
 
 	return 2 * result;  // Double the result to include contribution from x = -1 to 0
