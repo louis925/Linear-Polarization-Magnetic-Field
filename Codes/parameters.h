@@ -99,9 +99,11 @@
 #define k_CONST 1.38064852E-23       // Boltzmann constant (J*K^-1)
 
 // Debug use option-------------------------------
-#define SHOW_A_V 0                   // Show the A[] and v[] that read from MOLE_DATA
+#define SHOW_A_V_READ 0              // Show the A[] and v[] that read from MOLE_DATA
+#define SHOW_C 1                     // Show the collisional coeff C[] that read from MOLE_DATA
+#define SHOW_A 1                     // Show Einstein A[] used by the calculation
+#define SHOW_V 1                     // Show frequencies v[] used by the calculation
 #define SHOW_AV2 1                   // Show A[]/v[]^2
-#define SHOW_C 1                     // Show the C[] that read from MOLE_DATA
 #define SHOW_NI 1                    // Show the initial n[] that calculated by n_initial_cal()
 #define SHOW_NF 0                    // Show the finial n[] that calculated by n_initial_cal()
 #define OUTPUT_A_MATRIX_I 1          // Output the a_matrix_i[] that calculated by a_matrix_initialize() 

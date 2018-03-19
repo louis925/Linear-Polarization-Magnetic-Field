@@ -109,7 +109,7 @@ double relative_error_1D(const double array1[], const double array2[], int len, 
 	double total_err = 0.;
 	for (int i = 0; i < len; i++) {
 		err_array[i] = relative_error(array1[i], array2[i]);
-		total_err += err_array[i];
+		total_err += fabs(err_array[i]);
 	}
 	return total_err;
 }
@@ -121,8 +121,8 @@ double relative_error_2D(const double array1[][2], const double array2[][2], int
 	for (int i = 0; i < len; i++) {
 		err_array[i][0] = relative_error(array1[i][0], array2[i][0]);
 		err_array[i][1] = relative_error(array1[i][1], array2[i][1]);
-		total_err += err_array[i][0];
-		total_err += err_array[i][1];
+		total_err += fabs(err_array[i][0]);
+		total_err += fabs(err_array[i][1]);
 	}
 	return total_err;
 }

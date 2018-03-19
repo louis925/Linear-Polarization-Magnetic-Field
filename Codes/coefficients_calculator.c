@@ -79,13 +79,6 @@ int coeff_cal(const double *energy_level, double *v, double *E, double *F, doubl
 	}
 #endif
 
-#if SHOW_A_V
-	printf(" j: frequence (GHz)\n");
-	for (j = 0; j < (LEVEL_N - 1); j++) {
-		printf("%2d: %.3e\n", j, v[j]);
-	}
-#endif
-
 	// Br_n[] normalized intensity of the cosmic background radiation ========================
 	// Br_n = 1 / (exp(hv/kTb) - 1) 
 	// from Planck's law of black-body radiation: B(T,v) = 2hv^3/c^2 / (exp(hv/kT) - 1)

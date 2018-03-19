@@ -152,6 +152,18 @@ int main()
 	n_initial_cal(n, TEMP_B);
 	//n_initial_cal(n, T);
 
+#if SHOW_A
+	printf("Einstein A[] (s^-1): ");
+	print_array(A, LEVEL_N - 1);
+	printf("\n\n");
+#endif
+
+#if SHOW_V
+	printf("Frequencies v[] (GHz): ");
+	print_array(v, LEVEL_N - 1);
+	printf("\n\n");
+#endif
+
 #if SHOW_NI
 	printf("Initial n[]:\n");
 	print_nv(n);
@@ -510,7 +522,7 @@ void testing() {
 
 #if TEST_RATE_EQ_FILL && LEVEL_N == 3
 	test_rate_eq_fill_A_3();  // Pass on 2018.03.12
-	test_rate_eq_fill_iso_3();
+	test_rate_eq_fill_iso_3();  // Pass on 2018.03.19
 #endif
 
 #if TEST_S_ISO

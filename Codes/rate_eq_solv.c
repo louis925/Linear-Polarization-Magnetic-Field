@@ -488,7 +488,12 @@ int test_rate_eq_fill_iso_3() {
 		            0.,                                 A[1] * Br_n[1],        -A[1] * (1 + Br_n[1])
 	};
 	// Expected answer for tau = inf case.
-	double a_matrix_red_ans_1[LEVEL_N*LEVEL_N] = { 0. }; 
+	// Assuming  n0 = 3, n1 = 2, n2 = 1, then R10 = n1/(n0 - n1) = 2, R21 = 1
+	double a_matrix_red_ans_1[LEVEL_N*LEVEL_N] = {
+		      0.,                                 0.,                     0.,
+		A[0] * 2, -A[0] * (1 + 2) - 5.*A[1] * 1 / 3., 5.*A[1] * (1 + 1) / 3.,
+		      0.,                           A[1] * 1,        -A[1] * (1 + 1)
+	};
 
 	double err_a_matrix[LEVEL_N*LEVEL_N] = { 0. };  // Relative error in a_matrix_red
 	double total_err = 0.;

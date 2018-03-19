@@ -64,13 +64,11 @@ int lamda_data_reader(double *A, double *v, double *C, double *energy_level, dou
 	fscanf(file1, "%*[^\n]\n"); //!LEVEL + ENERGIES(cm^-1) + WEIGHT + J
 	
 	i = 0;
-	while(i < use_nlev)
-	{
+	while(i < use_nlev) {
 		fscanf(file1, " %*d %lf %*[^\n]\n", &energy_level[i]); //read, energy of each level (cm^-1)(unit of wavelength(l) inverse)(1/l)
 		i++;                                                   //@@@@@@@@@@@@@@@@@@@@@
 	}
-	while(i < nlev)
-	{
+	while(i < nlev)	{
 		fscanf(file1, "%*[^\n]\n"); //no use
 		i++;
 	}
@@ -82,14 +80,12 @@ int lamda_data_reader(double *A, double *v, double *C, double *energy_level, dou
 	fscanf(file1, "%*[^\n]\n"); //!TRANS + UP + LOW + EINSTEINA(s^-1) + FREQ(GHz) + E_u(K)
 
 	use_nlin = use_nlev-1;
-	if(use_nlin > nlin)
-	{
+	if(use_nlin > nlin)	{
 		printf("No Einstein coefficient data for the level higher than %d.\n", nlin+1);
 		use_nlin = nlin;
 	}
 	i = 0;
-	while(i < use_nlin)
-	{
+	while(i < use_nlin)	{
 #if USE_E_LEVEL_FOR_FREQUENCY
 		fscanf(file1, " %*d %*d %*d %le %*[^\n]\n", &A[i]); //[2012.11.17]read A coefficients(s^-1) only
 #else
@@ -97,21 +93,19 @@ int lamda_data_reader(double *A, double *v, double *C, double *energy_level, dou
 #endif
 		i++;                                                           //@@@@@@@@@@@@@@@@@@@@@@@@
 	}
-	while(i < nlin)
-	{
+	while(i < nlin)	{
 		fscanf(file1, "%*[^\n]\n"); //no use
 		i++;
 	}
 
-#if SHOW_A_V
+#if SHOW_A_V_READ
 #if USE_E_LEVEL_FOR_FREQUENCY
 	printf(" j  A[]:\n");
 #else
 	printf(" j  A[] v[]:\n");
 #endif
 	i=0;
-	while(i < (LEVEL_N-1))
-	{
+	while(i < (LEVEL_N-1)) {
 #if USE_E_LEVEL_FOR_FREQUENCY
 		printf("%2d: %.3e\n", i, A[i]);
 #else
