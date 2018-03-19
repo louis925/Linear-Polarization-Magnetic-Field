@@ -77,11 +77,10 @@ void rate_eq_solve(double n[TOTAL_N], double TAU) {
 #endif
 
 #if SHOW_R
-		//print R[][] for debug*****
 		if(l == 0) {
-			printf("\nR[][] initial: ");//*****
+			printf("\nR[][] initial: ");
 			print_R(R);
-			printf("\n");//*****/
+			printf("\n");
 		}
 #endif	
 

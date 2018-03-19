@@ -9,7 +9,7 @@ The main purpose of this code is to reproduce the result of Deguchi and Watson (
 Ref: Cortes (2005) https://arxiv.org/abs/astro-ph/0504258 https://doi.org/10.1086/430815
 */
 
-#define _CRT_SECURE_NO_WARNINGS    //Disable the SECURE WARNINGS for fopen()
+#define _CRT_SECURE_NO_WARNINGS       // Disable the SECURE WARNINGS for fopen()
 
 #include <stdio.h>
 #include <math.h>
@@ -517,35 +517,35 @@ void testing() {
 #endif
 
 #if TEST_A_INIT_SOLVE
-	test_solve_a_matrix_i();  // Pass on 2018.03.11
+	test_solve_a_matrix_i();       // Pass on 2018.03.11
 #endif
 
 #if TEST_RATE_EQ_FILL && LEVEL_N == 3
-	test_rate_eq_fill_A_3();  // Pass on 2018.03.12
-	test_rate_eq_fill_iso_3();  // Pass on 2018.03.19
+	test_rate_eq_fill_A_3();       // Pass on 2018.03.12
+	test_rate_eq_fill_iso_3();	   // Pass on 2018.03.19
 #endif
 
 #if TEST_S_ISO
-	test_source_f_n_iso();  // Pass on 2018.03.14
+	test_source_f_n_iso();         // Pass on 2018.03.14
 #endif
 
 #if TEST_S_3 && LEVEL_N == 3
-	test_source_f_n_3();  // Pass on 2018.03.14
+	test_source_f_n_3();           // Pass on 2018.03.14
 #endif
 
 #if TEST_K_3 && LEVEL_N == 3
-	test_k_f_n_3();  // Pass on 2018.03.17
+	test_k_f_n_3();                // Pass on 2018.03.17
 #endif
 
 #if TEST_BETA
-	test_beta_f();  // Pass on 2018.03.17
+	test_beta_f();                 // Pass on 2018.03.17
 #endif
 
 #if TEST_R_CAL_ISO
-	test_R_cal_iso();  // Pass on 2018.03.17
+	test_R_cal_iso();              // Pass on 2018.03.17
 #endif
 
 #if TEST_REDUCE
-	test_reduce();  // Pass on 2018.03.18
+	test_reduce();                 // Pass on 2018.03.18
 #endif
 }

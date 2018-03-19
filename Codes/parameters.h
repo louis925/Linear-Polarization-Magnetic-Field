@@ -113,14 +113,14 @@
 #define SHOW_I_LIMIT 1
 #define OUTPUT_E 0
 #define E_FILE "E[].csv"
-#define OUTPUT_BR_N 0
 #define SHOW_BR_N 0
+#define OUTPUT_BR_N 0
 #define BR_N_FILE "Br_n[].csv"
 #define SHOW_S 1
 #define SHOW_I_INIT 1
 #define SHOW_S_INIT 1
 #define DEBUG_ZERO_R 0               // Turn off radiation in the rate equation for debugging purpose
-#define SHOW_R 1
+#define SHOW_R 1                     // Show stimulated emission coefficient factors R[][] at the beginning and the end of each TAU step
 #define OUTPUT_I_R 1                 // Output integrand of R[][] to file for debugging
 #define SHOW_N 1                     // Show n[] at each TAU step
 #define CUTOFF_R 0                   // Set the minimum value for R[][] as R_MIN
