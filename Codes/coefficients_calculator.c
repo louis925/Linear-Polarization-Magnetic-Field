@@ -13,8 +13,10 @@
 // E[TRANS_N]           : Boltzmann factor, exp(-dEJJ'/kT), for energy difference between J and J', dEJJ'. EJJ' = E[(J-1)J/2+J']
 // F[LEVEL_N-1]         : Flux normalization factor, 2h(vJJ')^3/c^2, FJJ' = F[J']
 // Br_n[LEVEL_N-1]      : Normalized cosmic blackbody radiation intensity for J -> J'=J-1, Br_JJ' = Br[J']
+// S_ext_n[LEVEL_N-1]   : Normalized intensity from external source for J -> J'=J-1, S_ext_JJ' / FJJ' = S_ext_n[J']
+//                        S_ext_n = (1 - exp(-TAU_ext)) / (exp(hv/kT_ext) - 1)
 // T                    : Temperature of the cloud (K)
-int coeff_cal(const double *energy_level, double *v, double *E, double *F, double *Br_n, double T) {
+int coeff_cal(const double *energy_level, double *v, double *E, double *F, double *Br_n, double *S_ext_n, double T) {
 	int i;
 	int j, jp;
 	double x;
@@ -121,8 +123,25 @@ int coeff_cal(const double *energy_level, double *v, double *E, double *F, doubl
 	}
 	printf("\n");
 #endif
-	printf("Finished coefficient calculation.\n");
 
+	// S_ext_n[] normalized radiation from external source ========================
+	// S_ext_n = (1 - exp(-TAU_ext)) / (exp(hv/kT_ext) - 1) 
+	// from Planck's law of black-body radiation: B(T,v) = 2hv^3/c^2 / (exp(hv/kT) - 1)
+#if EXT_SOURCE
+#if USE_E_LEVEL_FOR_FREQUENCY
+	x = LIGHT_SPEED * 100.0 * h_CONST / k_CONST / TEMP_EXT;
+	for (j = 0; j < (LEVEL_N - 1); j++) {
+		S_ext_n[j] = (1 - exp(-TAU_EXT)) / (exp(x*(energy_level[j + 1] - energy_level[j])) - 1); //already divided by F = 2hv^3/c^2
+	}
+#else
+	x = h_CONST / k_CONST / TEMP_EXT * 1E9; //the unit of frequency v[] is GHz, GHz = 10^9 Hz
+	for (j = 0; j < (LEVEL_N - 1); j++) {
+		S_ext_n[j] = (1 - exp(-TAU_EXT)) / (exp(x*v[j]) - 1); //already divided by F = 2hv^3/c^2
+	}
+#endif
+#endif
+
+	printf("Finished coefficient calculation.\n");
 	return 0;
 }
 

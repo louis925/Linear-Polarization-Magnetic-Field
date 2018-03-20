@@ -32,7 +32,9 @@ double C[TRANS_N] = {0.0};            // Collisional excitation rates for J -> J
 double E[TRANS_N] = {0.0};            // Boltzmann factor, exp(-dEJJ'/kT), for energy difference dE between J and J', EJJ' = E[(J-1)J/2+J']
 double F[LEVEL_N-1] = {0.0};          // Flux normalization factor, 2h(vJJ')^3/c^2, FJJ' = F[J']
 double v[LEVEL_N-1] = {0.0};          // Frequency (GHz) for J -> J'=J-1, vJJ' = v[J'], GHz = 10^9 Hz
-double Br_n[LEVEL_N-1] = {0.0};       // Normalized cosmic blackbody radiation intensity for J -> J'=J-1, Br_JJ' = Br[J']
+double Br_n[LEVEL_N-1] = {0.0};       // Normalized cosmic blackbody radiation intensity for J -> J'=J-1, Br_JJ' / FJJ' = Br_n[J']
+double S_ext_n[LEVEL_N-1] = {0.0};    // Normalized intensity from external source for J -> J'=J-1, S_ext_JJ' / FJJ' = S_ext_n[J']
+									  // S_ext_n = (1 - exp(-TAU_ext)) / (exp(hv/kT_ext) - 1)
 double energy_level[LEVEL_N] = {0.0}; // Potential energy (cm^-1) at level J (energy_level[J=0] = 0) (in unit of the inverse of wavelength(l), 1/l)
 double T;                             // Temperature of the cloud (K)
 
@@ -138,7 +140,7 @@ int main()
 #endif	
 	
 	// Calculate Coefficients ______________________________________________
-	coeff_cal(energy_level, v, E, F, Br_n, T);		
+	coeff_cal(energy_level, v, E, F, Br_n, S_ext_n, T);
 
 	// Initialize a_matrix_i[] _____________________________________________
 	a_matrix_initialize(a_matrix_i); //fill a_matrix_i[] with C[]
@@ -522,7 +524,9 @@ void testing() {
 
 #if TEST_RATE_EQ_FILL && LEVEL_N == 3
 	test_rate_eq_fill_A_3();       // Pass on 2018.03.12
+#if !EXT_SOURCE
 	test_rate_eq_fill_iso_3();	   // Pass on 2018.03.19
+#endif
 #endif
 
 #if TEST_S_ISO
@@ -541,7 +545,7 @@ void testing() {
 	test_beta_f();                 // Pass on 2018.03.17
 #endif
 
-#if TEST_R_CAL_ISO
+#if TEST_R_CAL_ISO && !EXT_SOURCE
 	test_R_cal_iso();              // Pass on 2018.03.17
 #endif
 

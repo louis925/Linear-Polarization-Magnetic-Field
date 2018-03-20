@@ -21,7 +21,7 @@
 #define WINDOWS                      // Pause at the end of the program and every error
 
 // Number of levels
-#define LEVEL_N 3                       // Total number of levels N (Ex: 2: J = 0 ~ 1)
+#define LEVEL_N 11                       // Total number of levels N (Ex: 2: J = 0 ~ 1)
 #define TOTAL_N ((LEVEL_N+1)*LEVEL_N)/2 // Total number of independent sublevels (size of n[])
 #define TRANS_N ((LEVEL_N-1)*LEVEL_N)/2 // Total transition number for different J (size of C[])
 
@@ -71,11 +71,17 @@
 //#define TAU_INC_RATIO 0.9120108393559098 // Optical depth increase ratio bewteen each step (decreasing)
 
 // Temperature
-#define TEMP_SELE 8                 // The collisional temperature column in the LAMDA data (start from 1) // Before 11
+#define TEMP_SELE 8                  // The collisional temperature column in the LAMDA data (start from 1) // Before 11
 //#define TEMP_SELE 10                 // sio 100K
 //#define TEMP_SELE 31                 // sio 500K
 #define TEMP_B 2.725                 // Cosmic background radiation temperature (K, data from Wiki 2009.12)
 //#define TEMP_B 50.0                  // Use other background radiation temperature (K)
+
+// External continuum point source
+#define EXT_SOURCE 1                 // If there is an external source or not? 0: No, 1: Yes
+#define TEMP_EXT 70.0                // Temperature of the external source (K)
+#define TAU_EXT 1.5                  // Optical depth of the external source
+#define EXT_ANG 0.304*M_PI           // Angle between incident direction of the point source and z-axis
 
 // Integral methods
 #define GSL_INTEGRAL_QNG 0           // QNG non-adaptive Gauss-Kronrod integration

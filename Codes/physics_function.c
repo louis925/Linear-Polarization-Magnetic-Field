@@ -189,13 +189,18 @@ void R_cal(const double n[TOTAL_N], double tau, double R[LEVEL_N-1][2]) {
 	// R[j][dM] for the transition from J to j = J' = J-1 with |M - M'| = dM
 	int j; // j = J' = J-1
 	double error;
+	double dRf0, dRf1;
 	unsigned int intervals;
 	Fn_Param params;
 
 	params.n = n;
 	params.tau = tau; //the total optical depth tau[0] in this case(computation)
 	params.k0 = k_f_n(n, cos(TAU_ANG), 0, 0); //[2010.01.22] OBS_ANG was replaced by TAU_ANG
-		
+#if EXT_SOURCE
+	dRf0 = 3 * sin(EXT_ANG)*sin(EXT_ANG) / (8 * M_PI);
+	dRf1 = 3 * (1 + cos(EXT_ANG)*cos(EXT_ANG)) / (16 * M_PI);
+#endif
+
 	for (j = 0; j < (LEVEL_N - 1); j++) { //j = 0 ~ LEVEL_N-2
 		params.j = j;
 		R[j][0] = integral(i_f_r0m, &params, &error, &intervals) * 3.0 / 2.0;
@@ -205,7 +210,12 @@ void R_cal(const double n[TOTAL_N], double tau, double R[LEVEL_N-1][2]) {
 		
 		R[j][1] = integral(i_f_r1m, &params, &error, &intervals) * 3.0 / 4.0;
 		// R has already integrated over azimuth angle. Thus, it gains a 1/2 factor
-		interval_count += (unsigned long long)intervals;		
+		interval_count += (unsigned long long)intervals;
+
+#if EXT_SOURCE
+		R[j][0] += dRf0 * beta_f(tau_f(n, params.k0, tau, cos(EXT_ANG), 0, j)) * S_ext_n[j];
+		R[j][1] += dRf1 * beta_f(tau_f(n, params.k0, tau, cos(EXT_ANG), 1, j)) * S_ext_n[j];
+#endif
 	}
 }
 
@@ -248,6 +258,24 @@ void output_integrand_R(const double n[TOTAL_N], double tau, int n_sample, const
 			printf("The file '%s' was not closed\n", output_filename);
 		}
 	}
+}
+
+// Original way of computing tau function (slow)
+double tau_f(const double n[TOTAL_N], double k0, double tau0, double cos_0, int q, int j) {
+	double cos2 = cos_0 * cos_0;
+	double L_factor, sin2;
+	sin2 = fabs(1 - cos2);  //sin^2(\theta)
+
+#if TwoD //use s*s for 2D velocity field, or c*c for 1D velocity field
+	L_factor = sin(TAU_ANG)*sin(TAU_ANG) / sin2;  // Can be +inf
+#elif OneD
+	L_factor = cos(TAU_ANG)*cos(TAU_ANG) / cos2;  // Can be +inf
+#elif Mix
+	L_factor = (cos(TAU_ANG)*cos(TAU_ANG) + MixRatio * sin(TAU_ANG)*sin(TAU_ANG)) / (cos2 + MixRatio * sin2);
+#else //Isotropic
+	L_factor = 1.;
+#endif
+	return tau0 * (k_f_n(n, cos_0, q, j) / k0) * L_factor;
 }
 
 // Integrand of R_JJ' for dM = 0 (R[J'][0]) without the factor 3/2

@@ -46,6 +46,9 @@ void R_cal(const double n[TOTAL_N], double tau, double R[LEVEL_N-1][2]);
 // Given n[], tau[0], number of sample points n_sample, write integrand of R to file output_filename
 void output_integrand_R(const double n[TOTAL_N], double tau, int n_sample, const char* output_filename);
 
+// Original way of computing tau function (slow)
+double tau_f(const double n[TOTAL_N], double k0, double tau0, double cos_0, int q, int j);
+
 // Integrand of R_JJ' for dM = 0 (R[J'][0]) without the factor 3/2
 // Return sin^2 * I_pa_n[0]
 double i_f_r0m(double x, void * params);
