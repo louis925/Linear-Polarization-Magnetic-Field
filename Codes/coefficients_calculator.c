@@ -30,7 +30,8 @@ int coeff_cal(const double *energy_level, double *v, double *E, double *F, doubl
 
 	// E[] Boltzmann factor ====================================
 	// E = exp(-hv/kT)
-	x = h_CONST / k_CONST * LIGHT_SPEED / T * -100.0;
+	x = h_CONST / k_CONST * LIGHT_SPEED / T * -100.0;  
+	// Note the factor of 100 comes from that energy_level[] are in cm^-1 but LIGHT_SPEED is in m/s
 	i = 0; //index of E[]
 	j = 1; //upper level
 	while(j < LEVEL_N) {
@@ -76,6 +77,7 @@ int coeff_cal(const double *energy_level, double *v, double *E, double *F, doubl
 #if USE_E_LEVEL_FOR_FREQUENCY
 	// Use energy level data to calculate frequency of radiation [2012.11.17]
 	x = LIGHT_SPEED * 100.0 / 1E9; //the unit of frequency v[] is GHz, GHz = 10^9 Hz
+	// Note the factor of 100 comes from that energy_level[] are in cm^-1 but LIGHT_SPEED is in m/s
 	for (j = 0; j < (LEVEL_N - 1); j++) {
 		v[j] = x*(energy_level[j+1] - energy_level[j]);
 	}
@@ -86,6 +88,7 @@ int coeff_cal(const double *energy_level, double *v, double *E, double *F, doubl
 	// from Planck's law of black-body radiation: B(T,v) = 2hv^3/c^2 / (exp(hv/kT) - 1)
 #if USE_E_LEVEL_FOR_FREQUENCY //[2012.11.17]
 	x = LIGHT_SPEED * 100.0 * h_CONST / k_CONST / TEMP_B;
+	// Note the factor of 100 comes from that energy_level[] are in cm^-1 but LIGHT_SPEED is in m/s
 	for (j = 0; j < (LEVEL_N - 1); j++) {
 		Br_n[j] = 1 / (exp(x*(energy_level[j + 1] - energy_level[j])) - 1); //already divided by F = 2hv^3/c^2
 	}
