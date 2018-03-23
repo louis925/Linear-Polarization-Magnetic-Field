@@ -197,8 +197,8 @@ void R_cal(const double n[TOTAL_N], double tau, double R[LEVEL_N-1][2]) {
 	params.tau = tau; //the total optical depth tau[0] in this case(computation)
 	params.k0 = k_f_n(n, cos(TAU_ANG), 0, 0); //[2010.01.22] OBS_ANG was replaced by TAU_ANG
 #if EXT_SOURCE
-	dRf0 = 3 * sin(EXT_ANG)*sin(EXT_ANG) / (8 * M_PI);
-	dRf1 = 3 * (1 + cos(EXT_ANG)*cos(EXT_ANG)) / (16 * M_PI);
+	dRf0 = 3 * sin(EXT_ANG)*sin(EXT_ANG) * OMEGA_EXT / (8 * M_PI);
+	dRf1 = 3 * (1 + cos(EXT_ANG)*cos(EXT_ANG)) * OMEGA_EXT / (16 * M_PI);
 #endif
 
 	for (j = 0; j < (LEVEL_N - 1); j++) { //j = 0 ~ LEVEL_N-2

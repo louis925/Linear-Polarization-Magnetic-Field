@@ -77,11 +77,12 @@
 #define TEMP_B 2.725                 // Cosmic background radiation temperature (K, data from Wiki 2009.12)
 //#define TEMP_B 50.0                  // Use other background radiation temperature (K)
 
-// External continuum point source
+// External continuum source
 #define EXT_SOURCE 1                 // If there is an external source or not? 0: No, 1: Yes
-#define TEMP_EXT 70.0                // Temperature of the external source (K)
+#define TEMP_EXT 1000.0                // Temperature of the external source (K)
 #define TAU_EXT 1.5                  // Optical depth of the external source
-#define EXT_ANG 0.304*M_PI           // Angle between incident direction of the point source and z-axis
+#define EXT_ANG 0.304*M_PI           // Angle between the line of sight from the center of the external source and the z-axis
+#define OMEGA_EXT 1.0                // Solid angle of the external source viewed from the cloud
 
 // Integral methods
 #define GSL_INTEGRAL_QNG 0           // QNG non-adaptive Gauss-Kronrod integration
